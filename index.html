@@ -1,0 +1,2712 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>บันทึกงาน</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --bg: #f5f4ef;
+    --bg-gradient: linear-gradient(135deg, #f5f4ef 0%, #efeee8 100%);
+    --surface: #ffffff;
+    --surface-muted: #faf9f5;
+    --border: #e7e6e1;
+    --border-strong: #d6d5cf;
+    --text: #1a1a17;
+    --text-muted: #6b6a64;
+    --text-soft: #98968f;
+    --accent: #2c5f4f;
+    --accent-soft: #e6efea;
+    --accent-strong: #1f4a3c;
+    --accent-2: #3b6dc7;
+    --accent-2-soft: #e6edf7;
+    --accent-3: #8b4a8a;
+    --accent-3-soft: #f1e6f0;
+
+    --done: #1f7a4d;
+    --done-bg: #e3f1e9;
+    --done-tint: #d4ebde;
+    --doing: #b06a05;
+    --doing-bg: #fbeed1;
+    --doing-tint: #f6e1b3;
+    --todo: #6b6a64;
+    --todo-bg: #ececea;
+    --todo-tint: #dededb;
+    --skip: #4a6b80;
+    --skip-bg: #e6eef3;
+    --skip-tint: #d4e1eb;
+
+    --danger: #b3261e;
+    --danger-bg: #fbe9e7;
+
+    --radius: 10px;
+    --radius-sm: 6px;
+    --radius-lg: 14px;
+
+    --shadow-card: 0 1px 2px rgba(20, 20, 18, 0.04);
+    --shadow-modal: 0 24px 60px -16px rgba(20, 20, 18, 0.25), 0 6px 18px rgba(20, 20, 18, 0.08);
+
+    --font: 'IBM Plex Sans Thai', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 0% 0%, rgba(44, 95, 79, 0.04), transparent 40%),
+      radial-gradient(circle at 100% 100%, rgba(59, 109, 199, 0.04), transparent 40%);
+    background-attachment: fixed;
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+
+  button { font-family: inherit; cursor: pointer; }
+  input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+
+  /* ----- Layout ----- */
+  .app {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 32px 96px;
+  }
+
+  /* ----- Header ----- */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .header__left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .header__logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+    color: white;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 4px 12px rgba(44, 95, 79, 0.2);
+    flex-shrink: 0;
+  }
+  .header__title {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+  .header__subtitle {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .header__date {
+    font-size: 13px;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+  }
+
+  /* ----- Stats ----- */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 16px 14px;
+    box-shadow: 0 1px 3px rgba(20, 20, 18, 0.04);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: currentColor;
+    opacity: 0.7;
+  }
+  .stat:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(20, 20, 18, 0.08);
+    border-color: var(--border-strong);
+  }
+  .stat__icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    color: white;
+    background: currentColor;
+  }
+  .stat__icon svg { color: white; }
+  .stat__body { flex: 1; min-width: 0; }
+  .stat__label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+    font-weight: 500;
+  }
+  .stat__value {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.05;
+    font-feature-settings: 'tnum';
+    color: currentColor;
+  }
+  .stat__hint {
+    font-size: 11px;
+    color: var(--text-soft);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+  .stat__sub { display: block; color: var(--text-soft); font-size: 11px; }
+
+  .stat--total { color: var(--accent); }
+  .stat--done  { color: var(--done); }
+  .stat--doing { color: var(--doing); }
+  .stat--todo  { color: var(--todo); }
+  .stat--skip  { color: var(--skip); }
+  .stat--total .stat__icon { background: linear-gradient(135deg, var(--accent), var(--accent-strong)); }
+  .stat--done .stat__icon  { background: linear-gradient(135deg, #2a9764, var(--done)); }
+  .stat--doing .stat__icon { background: linear-gradient(135deg, #d4830f, var(--doing)); }
+  .stat--todo .stat__icon  { background: linear-gradient(135deg, #8a8983, var(--todo)); }
+  .stat--skip .stat__icon  { background: linear-gradient(135deg, #5d829c, var(--skip)); }
+
+  /* ----- Toolbar ----- */
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .search {
+    flex: 1 1 280px;
+    position: relative;
+  }
+  .search input {
+    width: 100%;
+    padding: 10px 14px 10px 38px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .search input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .search__icon {
+    position: absolute;
+    left: 12px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-soft);
+    pointer-events: none;
+  }
+
+  .select {
+    padding: 10px 32px 10px 14px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6a64' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    outline: none;
+    cursor: pointer;
+  }
+  .select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .view-toggle {
+    display: inline-flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 3px;
+    gap: 2px;
+  }
+  .view-toggle button {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 6px 12px;
+    border-radius: 7px;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .view-toggle button.active {
+    background: var(--surface-muted);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+  .view-toggle button:hover:not(.active) { color: var(--text); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+  }
+  .btn:hover { background: var(--surface-muted); border-color: var(--border-strong); }
+  .btn:active { transform: translateY(1px); }
+  .btn--primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .btn--primary:hover {
+    background: var(--accent-strong);
+    border-color: var(--accent-strong);
+  }
+  .btn--danger {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: white;
+  }
+  .btn--danger:hover { background: #8e1f18; border-color: #8e1f18; }
+  .btn--ghost {
+    border-color: transparent;
+    background: transparent;
+  }
+  .btn--ghost:hover { background: var(--surface-muted); border-color: var(--border); }
+  .btn--sm { padding: 6px 10px; font-size: 13px; }
+  .btn--icon { padding: 7px; }
+
+  /* ----- Table ----- */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20, 20, 18, 0.04);
+  }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 14px 18px;
+    background: linear-gradient(180deg, var(--surface-muted) 0%, var(--surface) 100%);
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.02em;
+  }
+  td {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    font-size: 14px;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr.row { transition: background 0.12s ease; }
+  tr.row:hover { background: var(--surface-muted); }
+  .cell--name { font-weight: 500; color: var(--text); }
+  .cell--date { color: var(--text-muted); font-feature-settings: 'tnum'; white-space: nowrap; }
+  .cell--actions { text-align: right; white-space: nowrap; }
+  .cell--actions .btn { margin-left: 4px; }
+
+  /* ----- Card view ----- */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 18px 14px;
+    box-shadow: 0 1px 3px rgba(20, 20, 18, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .card:hover {
+    border-color: var(--border-strong);
+    box-shadow: 0 6px 18px rgba(20, 20, 18, 0.08);
+    transform: translateY(-1px);
+  }
+  .card:hover::before { opacity: 0.6; }
+  .card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .card__title {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.35;
+    word-break: break-word;
+    flex: 1;
+  }
+  .card__meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-feature-settings: 'tnum';
+  }
+  .card__actions {
+    display: flex;
+    gap: 4px;
+    margin-top: auto;
+    padding-top: 4px;
+    border-top: 1px solid var(--border);
+    justify-content: flex-end;
+  }
+
+  /* ----- Status pill ----- */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 9px 4px 7px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+  .pill svg { flex-shrink: 0; }
+  .pill--done  { background: var(--done-bg);  color: var(--done);  border-color: var(--done-tint); }
+  .pill--doing { background: var(--doing-bg); color: var(--doing); border-color: var(--doing-tint); }
+  .pill--todo  { background: var(--todo-bg);  color: var(--todo);  border-color: var(--todo-tint); }
+  .pill--skip  { background: var(--skip-bg);  color: var(--skip);  border-color: var(--skip-tint); }
+
+  /* ----- Empty state ----- */
+  .empty {
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+    padding: 56px 24px;
+    text-align: center;
+    color: var(--text-muted);
+  }
+  .empty__icon {
+    width: 48px; height: 48px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    background: var(--surface-muted);
+    display: grid;
+    place-items: center;
+    color: var(--text-soft);
+  }
+  .empty__title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .empty__desc { font-size: 14px; margin-bottom: 18px; }
+
+  /* ----- Modal ----- */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 20, 18, 0.4);
+    backdrop-filter: blur(2px);
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    z-index: 100;
+    animation: fadeIn 0.15s ease;
+  }
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 480px;
+    box-shadow: var(--shadow-modal);
+    animation: scaleIn 0.18s ease;
+    overflow: hidden;
+  }
+  .modal__header {
+    padding: 22px 24px 12px;
+  }
+  .modal__title {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 0;
+  }
+  .modal__desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 6px 0 0;
+  }
+  .modal__body { padding: 8px 24px 20px; display: flex; flex-direction: column; gap: 16px; }
+  .modal__footer {
+    padding: 16px 24px;
+    background: var(--surface-muted);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field__label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .field__hint {
+    font-size: 12px;
+    color: var(--text-soft);
+  }
+  .field input[type="text"],
+  .field input[type="date"] {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .field input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .status-picker {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  /* ----- Mode pill (view/edit indicator) ----- */
+  .mode-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+  }
+  .mode-pill--edit {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    border-color: color-mix(in oklab, var(--accent) 25%, transparent);
+  }
+  .mode-pill--edit:hover { background: color-mix(in oklab, var(--accent-soft) 80%, var(--accent) 20%); }
+  .mode-pill--view {
+    background: var(--surface-muted);
+    color: var(--text-muted);
+    border-color: var(--border);
+  }
+  .mode-pill--view:hover {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--accent);
+  }
+  .settings-mode {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  /* ----- Password input ----- */
+  .pw-input {
+    position: relative;
+  }
+  .pw-input input {
+    width: 100%;
+    padding: 10px 40px 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    font-size: 15px;
+    font-family: inherit;
+    box-sizing: border-box;
+  }
+  .pw-input input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .pw-toggle {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    padding: 8px;
+    color: var(--text-soft);
+    cursor: pointer;
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+  }
+  .pw-toggle:hover { background: var(--surface-muted); color: var(--text); }
+  .field__hint code {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    background: var(--surface-muted);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 11px;
+    color: var(--accent-strong);
+  }
+
+  /* ----- Filter panel ----- */
+  .btn--active {
+    background: var(--accent-soft);
+    border-color: color-mix(in oklab, var(--accent) 30%, transparent);
+    color: var(--accent-strong);
+  }
+  .filter-count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    background: var(--accent);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 0 5px;
+    margin-left: 2px;
+  }
+  .filter-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-card);
+    animation: fadeIn 0.15s ease;
+  }
+  .filter-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 6px 0;
+  }
+  .filter-row + .filter-row {
+    border-top: 1px solid var(--border);
+    margin-top: 2px;
+    padding-top: 12px;
+  }
+  .filter-row__label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    width: 110px;
+    flex-shrink: 0;
+  }
+  .filter-row__summary {
+    font-size: 13px;
+    color: var(--text-muted);
+    flex: 1;
+  }
+  .filter-row__summary strong { color: var(--text); font-weight: 600; }
+
+  .chip--sm {
+    padding: 5px 12px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .chip__dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  @media (max-width: 720px) {
+    .filter-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .filter-row__label { width: auto; }
+  }
+
+  /* ----- Chip picker (work type) ----- */
+  .chip-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .chip {
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+    transition: all 0.15s ease;
+  }
+  .chip:hover { border-color: var(--border-strong); color: var(--text); }
+  .chip.active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    box-shadow: 0 0 0 2px var(--accent-soft);
+  }
+
+  /* ----- Type chip (display) ----- */
+  .type-chip {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--accent-2-soft);
+    border: 1px solid color-mix(in oklab, var(--accent-2) 18%, transparent);
+    font-size: 12px;
+    color: var(--accent-2);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .cell--muted { color: var(--text-soft); }
+  .card__type { display: flex; }
+
+  /* ----- Toggle group (Yes/No) ----- */
+  .toggle-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .toggle-option {
+    padding: 11px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    text-align: center;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .toggle-option:hover { border-color: var(--border-strong); }
+  .toggle-option.active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    box-shadow: 0 0 0 2px var(--accent-soft);
+  }
+
+  /* ----- Assigned badge ----- */
+  .status-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .assigned-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--accent-3-soft);
+    color: var(--accent-3);
+    border: 1px solid color-mix(in oklab, var(--accent-3) 18%, transparent);
+    white-space: nowrap;
+    width: fit-content;
+  }
+  .card .assigned-badge { align-self: flex-start; margin-top: -4px; }
+  .status-option {
+    padding: 12px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    text-align: center;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: all 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .status-option__dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .status-option:hover { border-color: var(--border-strong); }
+  .status-option.active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--text);
+    box-shadow: 0 0 0 2px var(--accent-soft);
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.96) translateY(8px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .stats { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 720px) {
+    .app { padding: 24px 14px 80px; }
+    .header { flex-direction: column; align-items: flex-start; gap: 16px; padding-bottom: 18px; margin-bottom: 22px; }
+    .stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stats .stat:last-child { grid-column: 1 / -1; }
+    th:nth-child(2), td:nth-child(2) { display: none; } /* hide type col on small */
+    th:nth-child(3), td:nth-child(3) { display: none; } /* hide date col on small */
+    .header__title { font-size: 22px; }
+    .header__logo { width: 40px; height: 40px; }
+    .stat__value { font-size: 22px; }
+    .stat__icon { width: 32px; height: 32px; }
+  }
+
+  /* ----- Header right side (sync + settings) ----- */
+  .header__right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sync {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .sync--ok   { color: var(--done);   background: var(--done-bg);  border-color: transparent; }
+  .sync--busy { color: var(--doing);  background: var(--doing-bg); border-color: transparent; }
+  .sync--err  { color: var(--danger); background: var(--danger-bg); border-color: transparent; cursor: help; }
+
+  .spinner {
+    width: 12px; height: 12px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin 0.7s linear infinite;
+  }
+  .spinner--lg { width: 22px; height: 22px; border-width: 2.5px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ----- Toast ----- */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-modal);
+    font-size: 14px;
+    border: 1px solid var(--border);
+    max-width: 380px;
+    animation: slideIn 0.25s ease;
+  }
+  .toast--error { color: var(--danger); border-color: var(--danger-bg); background: #fffaf9; }
+  .toast--success { color: var(--done); }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ----- Error empty state ----- */
+  .empty--err { border-style: solid; border-color: var(--danger-bg); }
+
+  /* ----- Setup screen ----- */
+  .setup {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 32px 20px;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(44, 95, 79, 0.06), transparent 50%),
+      radial-gradient(circle at 80% 90%, rgba(44, 95, 79, 0.04), transparent 50%),
+      var(--bg);
+  }
+  .setup__inner {
+    width: 100%;
+    max-width: 560px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 36px 36px 32px;
+    box-shadow: 0 4px 24px rgba(20, 20, 18, 0.05);
+  }
+  .setup__brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .setup__logo {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--accent);
+    color: white;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+  .setup__title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .setup__subtitle {
+    margin: 2px 0 0;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .setup__steps {
+    margin: 0 0 24px;
+    padding-left: 22px;
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.7;
+  }
+  .setup__steps li {
+    margin-bottom: 12px;
+    padding-left: 4px;
+  }
+  .setup__steps li::marker {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .setup__code {
+    display: block;
+    margin-top: 6px;
+    padding: 8px 12px;
+    background: var(--surface-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 12px;
+    color: var(--text);
+  }
+  .setup__inline {
+    background: var(--surface-muted);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 12px;
+    color: var(--accent-strong);
+    border: 1px solid var(--border);
+  }
+
+  .setup__form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+    background: var(--surface-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+  }
+  .setup__input {
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .setup__input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .setup__error {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--danger-bg);
+    color: var(--danger);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    word-break: break-word;
+  }
+  .setup__error code {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 12px;
+    opacity: 0.85;
+  }
+  .setup__hint {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .setup__hint code {
+    background: var(--surface);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 11px;
+  }
+  .setup__foot {
+    font-size: 12px;
+    color: var(--text-soft);
+    text-align: center;
+  }
+  .setup__foot code {
+    background: var(--surface-muted);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+
+  @media (max-width: 560px) {
+    .setup__inner { padding: 28px 22px 24px; }
+    .header__right .sync { display: none; } /* keep settings button only */
+  }
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" data-presets="react">
+
+// tweaks-panel.jsx
+// Reusable Tweaks shell + form-control helpers.
+//
+// Owns the host protocol (listens for __activate_edit_mode / __deactivate_edit_mode,
+// posts __edit_mode_available / __edit_mode_set_keys / __edit_mode_dismissed) so
+// individual prototypes don't re-roll it. Ships a consistent set of controls so you
+// don't hand-draw <input type="range">, segmented radios, steppers, etc.
+//
+// Usage (in an HTML file that loads React + Babel):
+//
+//   const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+//     "primaryColor": "#D97757",
+//     "palette": ["#D97757", "#29261b", "#f6f4ef"],
+//     "fontSize": 16,
+//     "density": "regular",
+//     "dark": false
+//   }/*EDITMODE-END*/;
+//
+//   function App() {
+//     const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+//     return (
+//       <div style={{ fontSize: t.fontSize, color: t.primaryColor }}>
+//         Hello
+//         <TweaksPanel>
+//           <TweakSection label="Typography" />
+//           <TweakSlider label="Font size" value={t.fontSize} min={10} max={32} unit="px"
+//                        onChange={(v) => setTweak('fontSize', v)} />
+//           <TweakRadio  label="Density" value={t.density}
+//                        options={['compact', 'regular', 'comfy']}
+//                        onChange={(v) => setTweak('density', v)} />
+//           <TweakSection label="Theme" />
+//           <TweakColor  label="Primary" value={t.primaryColor}
+//                        options={['#D97757', '#2A6FDB', '#1F8A5B', '#7A5AE0']}
+//                        onChange={(v) => setTweak('primaryColor', v)} />
+//           <TweakColor  label="Palette" value={t.palette}
+//                        options={[['#D97757', '#29261b', '#f6f4ef'],
+//                                  ['#475569', '#0f172a', '#f1f5f9']]}
+//                        onChange={(v) => setTweak('palette', v)} />
+//           <TweakToggle label="Dark mode" value={t.dark}
+//                        onChange={(v) => setTweak('dark', v)} />
+//         </TweaksPanel>
+//       </div>
+//     );
+//   }
+//
+// ─────────────────────────────────────────────────────────────────────────────
+
+const __TWEAKS_STYLE = `
+  .twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;
+    max-height:calc(100vh - 32px);display:flex;flex-direction:column;
+    transform:scale(var(--dc-inv-zoom,1));transform-origin:bottom right;
+    background:rgba(250,249,247,.78);color:#29261b;
+    -webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
+    border:.5px solid rgba(255,255,255,.6);border-radius:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 12px 40px rgba(0,0,0,.18);
+    font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
+  .twk-hd{display:flex;align-items:center;justify-content:space-between;
+    padding:10px 8px 10px 14px;cursor:move;user-select:none}
+  .twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em}
+  .twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);
+    width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
+  .twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}
+  .twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;
+    overflow-y:auto;overflow-x:hidden;min-height:0;
+    scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.15) transparent}
+  .twk-body::-webkit-scrollbar{width:8px}
+  .twk-body::-webkit-scrollbar-track{background:transparent;margin:2px}
+  .twk-body::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:4px;
+    border:2px solid transparent;background-clip:content-box}
+  .twk-body::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.25);
+    border:2px solid transparent;background-clip:content-box}
+  .twk-row{display:flex;flex-direction:column;gap:5px}
+  .twk-row-h{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+  .twk-lbl{display:flex;justify-content:space-between;align-items:baseline;
+    color:rgba(41,38,27,.72)}
+  .twk-lbl>span:first-child{font-weight:500}
+  .twk-val{color:rgba(41,38,27,.5);font-variant-numeric:tabular-nums}
+
+  .twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:rgba(41,38,27,.45);padding:10px 0 0}
+  .twk-sect:first-child{padding-top:0}
+
+  .twk-field{appearance:none;box-sizing:border-box;width:100%;min-width:0;height:26px;padding:0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;
+    background:rgba(255,255,255,.6);color:inherit;font:inherit;outline:none}
+  .twk-field:focus{border-color:rgba(0,0,0,.25);background:rgba(255,255,255,.85)}
+  select.twk-field{padding-right:22px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='rgba(0,0,0,.5)' d='M0 0h10L5 6z'/></svg>");
+    background-repeat:no-repeat;background-position:right 8px center}
+
+  .twk-slider{appearance:none;-webkit-appearance:none;width:100%;height:4px;margin:6px 0;
+    border-radius:999px;background:rgba(0,0,0,.12);outline:none}
+  .twk-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+    width:14px;height:14px;border-radius:50%;background:#fff;
+    border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+  .twk-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
+    background:#fff;border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+
+  .twk-seg{position:relative;display:flex;padding:2px;border-radius:8px;
+    background:rgba(0,0,0,.06);user-select:none}
+  .twk-seg-thumb{position:absolute;top:2px;bottom:2px;border-radius:6px;
+    background:rgba(255,255,255,.9);box-shadow:0 1px 2px rgba(0,0,0,.12);
+    transition:left .15s cubic-bezier(.3,.7,.4,1),width .15s}
+  .twk-seg.dragging .twk-seg-thumb{transition:none}
+  .twk-seg button{appearance:none;position:relative;z-index:1;flex:1;border:0;
+    background:transparent;color:inherit;font:inherit;font-weight:500;min-height:22px;
+    border-radius:6px;cursor:default;padding:4px 6px;line-height:1.2;
+    overflow-wrap:anywhere}
+
+  .twk-toggle{position:relative;width:32px;height:18px;border:0;border-radius:999px;
+    background:rgba(0,0,0,.15);transition:background .15s;cursor:default;padding:0}
+  .twk-toggle[data-on="1"]{background:#34c759}
+  .twk-toggle i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+  .twk-toggle[data-on="1"] i{transform:translateX(14px)}
+
+  .twk-num{display:flex;align-items:center;box-sizing:border-box;min-width:0;height:26px;padding:0 0 0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;background:rgba(255,255,255,.6)}
+  .twk-num-lbl{font-weight:500;color:rgba(41,38,27,.6);cursor:ew-resize;
+    user-select:none;padding-right:8px}
+  .twk-num input{flex:1;min-width:0;height:100%;border:0;background:transparent;
+    font:inherit;font-variant-numeric:tabular-nums;text-align:right;padding:0 8px 0 0;
+    outline:none;color:inherit;-moz-appearance:textfield}
+  .twk-num input::-webkit-inner-spin-button,.twk-num input::-webkit-outer-spin-button{
+    -webkit-appearance:none;margin:0}
+  .twk-num-unit{padding-right:8px;color:rgba(41,38,27,.45)}
+
+  .twk-btn{appearance:none;height:26px;padding:0 12px;border:0;border-radius:7px;
+    background:rgba(0,0,0,.78);color:#fff;font:inherit;font-weight:500;cursor:default}
+  .twk-btn:hover{background:rgba(0,0,0,.88)}
+  .twk-btn.secondary{background:rgba(0,0,0,.06);color:inherit}
+  .twk-btn.secondary:hover{background:rgba(0,0,0,.1)}
+
+  .twk-swatch{appearance:none;-webkit-appearance:none;width:56px;height:22px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:6px;padding:0;cursor:default;
+    background:transparent;flex-shrink:0}
+  .twk-swatch::-webkit-color-swatch-wrapper{padding:0}
+  .twk-swatch::-webkit-color-swatch{border:0;border-radius:5.5px}
+  .twk-swatch::-moz-color-swatch{border:0;border-radius:5.5px}
+
+  .twk-chips{display:flex;gap:6px}
+  .twk-chip{position:relative;appearance:none;flex:1;min-width:0;height:46px;
+    padding:0;border:0;border-radius:6px;overflow:hidden;cursor:default;
+    box-shadow:0 0 0 .5px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.06);
+    transition:transform .12s cubic-bezier(.3,.7,.4,1),box-shadow .12s}
+  .twk-chip:hover{transform:translateY(-1px);
+    box-shadow:0 0 0 .5px rgba(0,0,0,.18),0 4px 10px rgba(0,0,0,.12)}
+  .twk-chip[data-on="1"]{box-shadow:0 0 0 1.5px rgba(0,0,0,.85),
+    0 2px 6px rgba(0,0,0,.15)}
+  .twk-chip>span{position:absolute;top:0;bottom:0;right:0;width:34%;
+    display:flex;flex-direction:column;box-shadow:-1px 0 0 rgba(0,0,0,.1)}
+  .twk-chip>span>i{flex:1;box-shadow:0 -1px 0 rgba(0,0,0,.1)}
+  .twk-chip>span>i:first-child{box-shadow:none}
+  .twk-chip svg{position:absolute;top:6px;left:6px;width:13px;height:13px;
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+`;
+
+// ── useTweaks ───────────────────────────────────────────────────────────────
+// Single source of truth for tweak values. setTweak persists via the host
+// (__edit_mode_set_keys → host rewrites the EDITMODE block on disk).
+function useTweaks(defaults) {
+  const [values, setValues] = React.useState(defaults);
+  // Accepts either setTweak('key', value) or setTweak({ key: value, ... }) so a
+  // useState-style call doesn't write a "[object Object]" key into the persisted
+  // JSON block.
+  const setTweak = React.useCallback((keyOrEdits, val) => {
+    const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null
+      ? keyOrEdits : { [keyOrEdits]: val };
+    setValues((prev) => ({ ...prev, ...edits }));
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*');
+    // Same-window signal so in-page listeners (deck-stage rail thumbnails)
+    // can react — the parent message only reaches the host, not peers.
+    window.dispatchEvent(new CustomEvent('tweakchange', { detail: edits }));
+  }, []);
+  return [values, setTweak];
+}
+
+// ── TweaksPanel ─────────────────────────────────────────────────────────────
+// Floating shell. Registers the protocol listener BEFORE announcing
+// availability — if the announce ran first, the host's activate could land
+// before our handler exists and the toolbar toggle would silently no-op.
+// The close button posts __edit_mode_dismissed so the host's toolbar toggle
+// flips off in lockstep; the host echoes __deactivate_edit_mode back which
+// is what actually hides the panel.
+function TweaksPanel({ title = 'Tweaks', noDeckControls = false, children }) {
+  const [open, setOpen] = React.useState(false);
+  const dragRef = React.useRef(null);
+  // Auto-inject a rail toggle when a <deck-stage> is on the page. The
+  // toggle drives the deck's per-viewer _railVisible via window message;
+  // state is mirrored from the same localStorage key the deck reads so
+  // the control reflects reality across reloads. The mechanism is the
+  // message — authors who want custom placement can post it directly
+  // and pass noDeckControls to suppress this one.
+  const hasDeckStage = React.useMemo(
+    () => typeof document !== 'undefined' && !!document.querySelector('deck-stage'),
+    [],
+  );
+  // deck-stage enables its rail in connectedCallback, but this panel can
+  // mount before that element has upgraded. The initial read catches the
+  // common case; the listener covers mounting first. (Older deck-stage.js
+  // copies still wait for the host's __omelette_rail_enabled postMessage —
+  // same listener handles those.)
+  const [railEnabled, setRailEnabled] = React.useState(
+    () => hasDeckStage && !!document.querySelector('deck-stage')?._railEnabled,
+  );
+  React.useEffect(() => {
+    if (!hasDeckStage || railEnabled) return undefined;
+    const onMsg = (e) => {
+      if (e.data && e.data.type === '__omelette_rail_enabled') setRailEnabled(true);
+    };
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
+  }, [hasDeckStage, railEnabled]);
+  const [railVisible, setRailVisible] = React.useState(() => {
+    try { return localStorage.getItem('deck-stage.railVisible') !== '0'; } catch (e) { return true; }
+  });
+  const toggleRail = (on) => {
+    setRailVisible(on);
+    window.postMessage({ type: '__deck_rail_visible', on }, '*');
+  };
+  const offsetRef = React.useRef({ x: 16, y: 16 });
+  const PAD = 16;
+
+  const clampToViewport = React.useCallback(() => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const w = panel.offsetWidth, h = panel.offsetHeight;
+    const maxRight = Math.max(PAD, window.innerWidth - w - PAD);
+    const maxBottom = Math.max(PAD, window.innerHeight - h - PAD);
+    offsetRef.current = {
+      x: Math.min(maxRight, Math.max(PAD, offsetRef.current.x)),
+      y: Math.min(maxBottom, Math.max(PAD, offsetRef.current.y)),
+    };
+    panel.style.right = offsetRef.current.x + 'px';
+    panel.style.bottom = offsetRef.current.y + 'px';
+  }, []);
+
+  React.useEffect(() => {
+    if (!open) return;
+    clampToViewport();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', clampToViewport);
+      return () => window.removeEventListener('resize', clampToViewport);
+    }
+    const ro = new ResizeObserver(clampToViewport);
+    ro.observe(document.documentElement);
+    return () => ro.disconnect();
+  }, [open, clampToViewport]);
+
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      const t = e?.data?.type;
+      if (t === '__activate_edit_mode') setOpen(true);
+      else if (t === '__deactivate_edit_mode') setOpen(false);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  const dismiss = () => {
+    setOpen(false);
+    window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
+  };
+
+  const onDragStart = (e) => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const r = panel.getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY;
+    const startRight = window.innerWidth - r.right;
+    const startBottom = window.innerHeight - r.bottom;
+    const move = (ev) => {
+      offsetRef.current = {
+        x: startRight - (ev.clientX - sx),
+        y: startBottom - (ev.clientY - sy),
+      };
+      clampToViewport();
+    };
+    const up = () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  };
+
+  if (!open) return null;
+  return (
+    <>
+      <style>{__TWEAKS_STYLE}</style>
+      <div ref={dragRef} className="twk-panel" data-noncommentable=""
+           style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}>
+        <div className="twk-hd" onMouseDown={onDragStart}>
+          <b>{title}</b>
+          <button className="twk-x" aria-label="Close tweaks"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={dismiss}>✕</button>
+        </div>
+        <div className="twk-body">
+          {children}
+          {hasDeckStage && railEnabled && !noDeckControls && (
+            <TweakSection label="Deck">
+              <TweakToggle label="Thumbnail rail" value={railVisible} onChange={toggleRail} />
+            </TweakSection>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ── Layout helpers ──────────────────────────────────────────────────────────
+
+function TweakSection({ label, children }) {
+  return (
+    <>
+      <div className="twk-sect">{label}</div>
+      {children}
+    </>
+  );
+}
+
+function TweakRow({ label, value, children, inline = false }) {
+  return (
+    <div className={inline ? 'twk-row twk-row-h' : 'twk-row'}>
+      <div className="twk-lbl">
+        <span>{label}</span>
+        {value != null && <span className="twk-val">{value}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// ── Controls ────────────────────────────────────────────────────────────────
+
+function TweakSlider({ label, value, min = 0, max = 100, step = 1, unit = '', onChange }) {
+  return (
+    <TweakRow label={label} value={`${value}${unit}`}>
+      <input type="range" className="twk-slider" min={min} max={max} step={step}
+             value={value} onChange={(e) => onChange(Number(e.target.value))} />
+    </TweakRow>
+  );
+}
+
+function TweakToggle({ label, value, onChange }) {
+  return (
+    <div className="twk-row twk-row-h">
+      <div className="twk-lbl"><span>{label}</span></div>
+      <button type="button" className="twk-toggle" data-on={value ? '1' : '0'}
+              role="switch" aria-checked={!!value}
+              onClick={() => onChange(!value)}><i /></button>
+    </div>
+  );
+}
+
+function TweakRadio({ label, value, options, onChange }) {
+  const trackRef = React.useRef(null);
+  const [dragging, setDragging] = React.useState(false);
+  // The active value is read by pointer-move handlers attached for the lifetime
+  // of a drag — ref it so a stale closure doesn't fire onChange for every move.
+  const valueRef = React.useRef(value);
+  valueRef.current = value;
+
+  // Segments wrap mid-word once per-segment width runs out. The track is
+  // ~248px (280 panel − 28 body pad − 4 seg pad), each button loses 12px
+  // to its own padding, and 11.5px system-ui averages ~6.3px/char — so 2
+  // options fit ~16 chars each, 3 fit ~10. Past that (or >3 options), fall
+  // back to a dropdown rather than wrap.
+  const labelLen = (o) => String(typeof o === 'object' ? o.label : o).length;
+  const maxLen = options.reduce((m, o) => Math.max(m, labelLen(o)), 0);
+  const fitsAsSegments = maxLen <= ({ 2: 16, 3: 10 }[options.length] ?? 0);
+  if (!fitsAsSegments) {
+    // <select> emits strings — map back to the original option value so the
+    // fallback stays type-preserving (numbers, booleans) like the segment path.
+    const resolve = (s) => {
+      const m = options.find((o) => String(typeof o === 'object' ? o.value : o) === s);
+      return m === undefined ? s : typeof m === 'object' ? m.value : m;
+    };
+    return <TweakSelect label={label} value={value} options={options}
+                        onChange={(s) => onChange(resolve(s))} />;
+  }
+  const opts = options.map((o) => (typeof o === 'object' ? o : { value: o, label: o }));
+  const idx = Math.max(0, opts.findIndex((o) => o.value === value));
+  const n = opts.length;
+
+  const segAt = (clientX) => {
+    const r = trackRef.current.getBoundingClientRect();
+    const inner = r.width - 4;
+    const i = Math.floor(((clientX - r.left - 2) / inner) * n);
+    return opts[Math.max(0, Math.min(n - 1, i))].value;
+  };
+
+  const onPointerDown = (e) => {
+    setDragging(true);
+    const v0 = segAt(e.clientX);
+    if (v0 !== valueRef.current) onChange(v0);
+    const move = (ev) => {
+      if (!trackRef.current) return;
+      const v = segAt(ev.clientX);
+      if (v !== valueRef.current) onChange(v);
+    };
+    const up = () => {
+      setDragging(false);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
+
+  return (
+    <TweakRow label={label}>
+      <div ref={trackRef} role="radiogroup" onPointerDown={onPointerDown}
+           className={dragging ? 'twk-seg dragging' : 'twk-seg'}>
+        <div className="twk-seg-thumb"
+             style={{ left: `calc(2px + ${idx} * (100% - 4px) / ${n})`,
+                      width: `calc((100% - 4px) / ${n})` }} />
+        {opts.map((o) => (
+          <button key={o.value} type="button" role="radio" aria-checked={o.value === value}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </TweakRow>
+  );
+}
+
+function TweakSelect({ label, value, options, onChange }) {
+  return (
+    <TweakRow label={label}>
+      <select className="twk-field" value={value} onChange={(e) => onChange(e.target.value)}>
+        {options.map((o) => {
+          const v = typeof o === 'object' ? o.value : o;
+          const l = typeof o === 'object' ? o.label : o;
+          return <option key={v} value={v}>{l}</option>;
+        })}
+      </select>
+    </TweakRow>
+  );
+}
+
+function TweakText({ label, value, placeholder, onChange }) {
+  return (
+    <TweakRow label={label}>
+      <input className="twk-field" type="text" value={value} placeholder={placeholder}
+             onChange={(e) => onChange(e.target.value)} />
+    </TweakRow>
+  );
+}
+
+function TweakNumber({ label, value, min, max, step = 1, unit = '', onChange }) {
+  const clamp = (n) => {
+    if (min != null && n < min) return min;
+    if (max != null && n > max) return max;
+    return n;
+  };
+  const startRef = React.useRef({ x: 0, val: 0 });
+  const onScrubStart = (e) => {
+    e.preventDefault();
+    startRef.current = { x: e.clientX, val: value };
+    const decimals = (String(step).split('.')[1] || '').length;
+    const move = (ev) => {
+      const dx = ev.clientX - startRef.current.x;
+      const raw = startRef.current.val + dx * step;
+      const snapped = Math.round(raw / step) * step;
+      onChange(clamp(Number(snapped.toFixed(decimals))));
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
+  return (
+    <div className="twk-num">
+      <span className="twk-num-lbl" onPointerDown={onScrubStart}>{label}</span>
+      <input type="number" value={value} min={min} max={max} step={step}
+             onChange={(e) => onChange(clamp(Number(e.target.value)))} />
+      {unit && <span className="twk-num-unit">{unit}</span>}
+    </div>
+  );
+}
+
+// Relative-luminance contrast pick — checkmarks drawn over a swatch need to
+// read on both #111 and #fafafa without per-option configuration. Hex input
+// only (#rgb / #rrggbb); named or rgb()/hsl() colors fall through to "light".
+function __twkIsLight(hex) {
+  const h = String(hex).replace('#', '');
+  const x = h.length === 3 ? h.replace(/./g, (c) => c + c) : h.padEnd(6, '0');
+  const n = parseInt(x.slice(0, 6), 16);
+  if (Number.isNaN(n)) return true;
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return r * 299 + g * 587 + b * 114 > 148000;
+}
+
+const __TwkCheck = ({ light }) => (
+  <svg viewBox="0 0 14 14" aria-hidden="true">
+    <path d="M3 7.2 5.8 10 11 4.2" fill="none" strokeWidth="2.2"
+          strokeLinecap="round" strokeLinejoin="round"
+          stroke={light ? 'rgba(0,0,0,.78)' : '#fff'} />
+  </svg>
+);
+
+// TweakColor — curated color/palette picker. Each option is either a single
+// hex string or an array of 1-5 hex strings; the card adapts — a lone color
+// renders solid, a palette renders colors[0] as the hero (left ~2/3) with the
+// rest stacked in a sharp column on the right. onChange emits the
+// option in the shape it was passed (string stays string, array stays array).
+// Without options it falls back to the native color input for back-compat.
+function TweakColor({ label, value, options, onChange }) {
+  if (!options || !options.length) {
+    return (
+      <div className="twk-row twk-row-h">
+        <div className="twk-lbl"><span>{label}</span></div>
+        <input type="color" className="twk-swatch" value={value}
+               onChange={(e) => onChange(e.target.value)} />
+      </div>
+    );
+  }
+  // Native <input type=color> emits lowercase hex per the HTML spec, so
+  // compare case-insensitively. String() guards JSON.stringify(undefined),
+  // which returns the primitive undefined (no .toLowerCase).
+  const key = (o) => String(JSON.stringify(o)).toLowerCase();
+  const cur = key(value);
+  return (
+    <TweakRow label={label}>
+      <div className="twk-chips" role="radiogroup">
+        {options.map((o, i) => {
+          const colors = Array.isArray(o) ? o : [o];
+          const [hero, ...rest] = colors;
+          const sup = rest.slice(0, 4);
+          const on = key(o) === cur;
+          return (
+            <button key={i} type="button" className="twk-chip" role="radio"
+                    aria-checked={on} data-on={on ? '1' : '0'}
+                    aria-label={colors.join(', ')} title={colors.join(' · ')}
+                    style={{ background: hero }}
+                    onClick={() => onChange(o)}>
+              {sup.length > 0 && (
+                <span>
+                  {sup.map((c, j) => <i key={j} style={{ background: c }} />)}
+                </span>
+              )}
+              {on && <__TwkCheck light={__twkIsLight(hero)} />}
+            </button>
+          );
+        })}
+      </div>
+    </TweakRow>
+  );
+}
+
+function TweakButton({ label, onClick, secondary = false }) {
+  return (
+    <button type="button" className={secondary ? 'twk-btn secondary' : 'twk-btn'}
+            onClick={onClick}>{label}</button>
+  );
+}
+
+Object.assign(window, {
+  useTweaks, TweaksPanel, TweakSection, TweakRow,
+  TweakSlider, TweakToggle, TweakRadio, TweakSelect,
+  TweakText, TweakNumber, TweakColor, TweakButton,
+});
+
+</script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+// ----- constants ---------------------------------------------------------
+
+const STATUSES = [
+  { key: 'done',  label: 'เสร็จแล้ว',      short: 'เสร็จ',       color: 'var(--done)' },
+  { key: 'doing', label: 'กำลังทำ',        short: 'กำลังทำ',     color: 'var(--doing)' },
+  { key: 'todo',  label: 'ยังไม่เริ่ม',     short: 'ยังไม่เริ่ม', color: 'var(--todo)' },
+  { key: 'skip',  label: 'ไม่ต้องทำ',      short: 'ไม่ต้องทำ',   color: 'var(--skip)' },
+];
+
+const WORK_TYPES = [
+  'กล่าวเปิดงาน',
+  'ประชุมหารือ',
+  'มอบนโยบาย',
+  'บรรยาย',
+  'อื่นๆ',
+];
+
+const API_URL_KEY = 'work-log-api-url-v1';
+const VIEW_KEY    = 'work-log-view-v1';
+const SORT_KEY    = 'work-log-sort-v1';
+
+const FONT_OPTIONS = [
+  { key: 'IBM Plex Sans Thai', label: 'IBM Plex Sans Thai' },
+  { key: 'Sarabun',            label: 'Sarabun' },
+  { key: 'Prompt',             label: 'Prompt' },
+  { key: 'Noto Sans Thai',     label: 'Noto Sans Thai' },
+  { key: 'Kanit',              label: 'Kanit' },
+];
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "font": "IBM Plex Sans Thai"
+}/*EDITMODE-END*/;
+
+// ----- helpers -----------------------------------------------------------
+
+const THAI_MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const THAI_MONTHS_LONG = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+function formatThaiDate(iso, opts = {}) {
+  if (!iso) return '—';
+  const d = new Date(iso + 'T00:00:00');
+  if (isNaN(d)) return iso;
+  const day = d.getDate();
+  const month = opts.long ? THAI_MONTHS_LONG[d.getMonth()] : THAI_MONTHS[d.getMonth()];
+  const year = (d.getFullYear() + 543).toString().slice(-2);
+  const yearLong = d.getFullYear() + 543;
+  return `${day} ${month} ${opts.long ? yearLong : year}`;
+}
+
+function todayIso() {
+  const d = new Date();
+  const tz = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - tz).toISOString().slice(0, 10);
+}
+
+function fullThaiToday() {
+  const d = new Date();
+  const wd = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'][d.getDay()];
+  return `วัน${wd} ${d.getDate()} ${THAI_MONTHS_LONG[d.getMonth()]} ${d.getFullYear() + 543}`;
+}
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+function statusMeta(key) {
+  return STATUSES.find(s => s.key === key) || STATUSES[2];
+}
+
+// ----- API ---------------------------------------------------------------
+// ใช้ text/plain เพื่อเลี่ยง CORS preflight ของ Apps Script
+async function apiGet(url) {
+  const res = await fetch(url, { method: 'GET' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.error || 'unknown error');
+  return data.entries || [];
+}
+
+async function apiPost(url, payload) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload),
+    redirect: 'follow',
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.error || 'unknown error');
+  return data;
+}
+
+// ----- icons -------------------------------------------------------------
+
+const Icon = {
+  Search: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+    </svg>
+  ),
+  Plus: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 5v14M5 12h14"/>
+    </svg>
+  ),
+  Edit: () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+    </svg>
+  ),
+  Trash: () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+    </svg>
+  ),
+  Table: () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/>
+    </svg>
+  ),
+  Cards: () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="7" height="7" rx="1.5"/><rect x="14" y="4" width="7" height="7" rx="1.5"/>
+      <rect x="3" y="13" width="7" height="7" rx="1.5"/><rect x="14" y="13" width="7" height="7" rx="1.5"/>
+    </svg>
+  ),
+  Inbox: () => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6Z"/>
+    </svg>
+  ),
+  Clipboard: () => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="8" y="2" width="8" height="4" rx="1"/>
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+      <path d="M9 14l2 2 4-4"/>
+    </svg>
+  ),
+  Layers: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m12 2 9 5-9 5-9-5 9-5z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/>
+    </svg>
+  ),
+  CheckCircle: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>
+    </svg>
+  ),
+  Clock: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+    </svg>
+  ),
+  CircleDashed: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="3 3">
+      <circle cx="12" cy="12" r="9"/>
+    </svg>
+  ),
+  MinusCircle: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><path d="M8 12h8"/>
+    </svg>
+  ),
+  Sparkle: () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2l1.6 5.4L19 9l-5.4 1.6L12 16l-1.6-5.4L5 9l5.4-1.6z"/>
+    </svg>
+  ),
+  Settings: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  ),
+  Cloud: () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17.5 19a4.5 4.5 0 1 0-2.4-8.3 6 6 0 0 0-11.6 2.3A4 4 0 0 0 4 19h13.5Z"/>
+    </svg>
+  ),
+  Sync: () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>
+    </svg>
+  ),
+  Warn: () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/>
+      <path d="M12 9v4M12 17h.01"/>
+    </svg>
+  ),
+  Check: () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 6 9 17l-5-5"/>
+    </svg>
+  ),
+};
+
+// ----- App ---------------------------------------------------------------
+
+function App() {
+  const [apiUrl, setApiUrl] = useState(() => localStorage.getItem(API_URL_KEY) || '');
+  const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(null);
+  const [busy, setBusy] = useState(0); // active write count
+
+  const [view, setView]   = useState(() => localStorage.getItem(VIEW_KEY) || 'table');
+  const [sort, setSort]   = useState(() => localStorage.getItem(SORT_KEY) || 'date-desc');
+  const [query, setQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState([]);    // array of workType values (empty = all)
+  const [statusFilter, setStatusFilter] = useState([]); // array of status keys (empty = all)
+  const [assignedFilter, setAssignedFilter] = useState('all'); // 'all' | 'yes' | 'no'
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const [editing, setEditing] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  // persist UI prefs
+  useEffect(() => { localStorage.setItem(VIEW_KEY, view); }, [view]);
+  useEffect(() => { localStorage.setItem(SORT_KEY, sort); }, [sort]);
+
+  // tweaks (font)
+  const [t, setTweak] = window.useTweaks(TWEAK_DEFAULTS);
+  useEffect(() => {
+    document.documentElement.style.setProperty('--font', `'${t.font}', system-ui, sans-serif`);
+  }, [t.font]);
+
+  // toast helper
+  const showToast = useCallback((msg, kind = 'error') => {
+    setToast({ msg, kind });
+    setTimeout(() => setToast(null), 4500);
+  }, []);
+
+  // load entries
+  const loadEntries = useCallback(async (url) => {
+    if (!url) return;
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const list = await apiGet(url);
+      setEntries(list);
+    } catch (err) {
+      setLoadError(err.message || String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (apiUrl) loadEntries(apiUrl);
+  }, [apiUrl, loadEntries]);
+
+  // stats
+  const stats = useMemo(() => {
+    const s = { total: entries.length, done: 0, doing: 0, todo: 0, skip: 0 };
+    for (const e of entries) s[e.status] = (s[e.status] || 0) + 1;
+    return s;
+  }, [entries]);
+
+  // filtered + sorted
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    let list = entries.filter(e => {
+      if (q && !(e.name || '').toLowerCase().includes(q)) return false;
+      if (typeFilter.length > 0) {
+        const wt = e.workType || '__none__';
+        if (!typeFilter.includes(wt)) return false;
+      }
+      if (statusFilter.length > 0 && !statusFilter.includes(e.status)) return false;
+      if (assignedFilter !== 'all') {
+        const a = isAssigned(e.assigned);
+        if (assignedFilter === 'yes' && !a) return false;
+        if (assignedFilter === 'no'  &&  a) return false;
+      }
+      return true;
+    });
+    list.sort((a, b) => {
+      const cmp = String(a.date || '').localeCompare(String(b.date || ''));
+      if (cmp !== 0) return sort === 'date-asc' ? cmp : -cmp;
+      return (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0);
+    });
+    return list;
+  }, [entries, query, sort, typeFilter, statusFilter, assignedFilter]);
+
+  const activeFilterCount =
+    (typeFilter.length > 0 ? 1 : 0) +
+    (statusFilter.length > 0 ? 1 : 0) +
+    (assignedFilter !== 'all' ? 1 : 0);
+
+  const toggleFilter = (list, setList, value) => {
+    setList(list.includes(value) ? list.filter(v => v !== value) : [...list, value]);
+  };
+
+  const clearFilters = () => { setTypeFilter([]); setStatusFilter([]); setAssignedFilter('all'); setQuery(''); };
+
+  // mutations: optimistic + rollback on error
+  const withBusy = async (fn) => {
+    setBusy(b => b + 1);
+    try { return await fn(); } finally { setBusy(b => Math.max(0, b - 1)); }
+  };
+
+  const openNew  = () => setEditing({ id: null, name: '', workType: '', date: todayIso(), status: 'todo', assigned: false });
+  const openEdit = (e) => setEditing({ ...e });
+  const closeModal = () => setEditing(null);
+
+  const saveEntry = async (data) => {
+    if (!data.name.trim()) return;
+    setEditing(null);
+
+    if (data.id) {
+      // update
+      const before = entries;
+      const updated = { ...entries.find(e => e.id === data.id), ...data };
+      setEntries(es => es.map(e => e.id === data.id ? updated : e));
+      try {
+        await withBusy(() => apiPost(apiUrl, { action: 'update', ...updated }));
+      } catch (err) {
+        setEntries(before);
+        showToast('แก้ไขไม่สำเร็จ: ' + err.message);
+      }
+    } else {
+      // create
+      const newEntry = { ...data, id: uid(), createdAt: Date.now() };
+      setEntries(es => [newEntry, ...es]);
+      try {
+        await withBusy(() => apiPost(apiUrl, { action: 'create', ...newEntry }));
+      } catch (err) {
+        setEntries(es => es.filter(e => e.id !== newEntry.id));
+        showToast('บันทึกไม่สำเร็จ: ' + err.message);
+      }
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleting) return;
+    const target = deleting;
+    setDeleting(null);
+    const before = entries;
+    setEntries(es => es.filter(e => e.id !== target.id));
+    try {
+      await withBusy(() => apiPost(apiUrl, { action: 'delete', id: target.id }));
+    } catch (err) {
+      setEntries(before);
+      showToast('ลบไม่สำเร็จ: ' + err.message);
+    }
+  };
+
+  // ---- setup screen ----
+  if (!apiUrl) {
+    return (
+      <SetupScreen
+        onConnect={(url) => {
+          localStorage.setItem(API_URL_KEY, url);
+          setApiUrl(url);
+        }}
+      />
+    );
+  }
+
+  return (
+    <div className="app">
+      <header className="header">
+        <div className="header__left">
+          <div className="header__logo">
+            <Icon.Clipboard/>
+          </div>
+          <div>
+            <h1 className="header__title">บันทึกงาน</h1>
+            <p className="header__subtitle">ติดตามงาน วันที่ปฏิบัติ และสถานะการสรุปสาระสำคัญ</p>
+          </div>
+        </div>
+        <div className="header__right">
+          <SyncStatus busy={busy} error={loadError}/>
+          <button className="btn btn--ghost btn--icon" onClick={() => setSettingsOpen(true)} title="ตั้งค่า">
+            <Icon.Settings/>
+          </button>
+        </div>
+      </header>
+
+      <section className="stats">
+        <div className="stat stat--total">
+          <div className="stat__icon"><Icon.Layers/></div>
+          <div className="stat__body">
+            <div className="stat__label">ทั้งหมด</div>
+            <div className="stat__value">{stats.total}</div>
+            <div className="stat__hint">รายการบันทึก</div>
+          </div>
+        </div>
+        <div className="stat stat--done">
+          <div className="stat__icon"><Icon.CheckCircle/></div>
+          <div className="stat__body">
+            <div className="stat__label">เสร็จแล้ว</div>
+            <div className="stat__value">{stats.done + stats.skip}</div>
+            <div className="stat__hint">
+              {stats.total ? Math.round(((stats.done + stats.skip) / stats.total) * 100) : 0}% ของทั้งหมด
+              {stats.skip > 0 && <span className="stat__sub"> · รวมไม่ต้องทำ {stats.skip}</span>}
+            </div>
+          </div>
+        </div>
+        <div className="stat stat--doing">
+          <div className="stat__icon"><Icon.Clock/></div>
+          <div className="stat__body">
+            <div className="stat__label">กำลังทำ</div>
+            <div className="stat__value">{stats.doing}</div>
+            <div className="stat__hint">อยู่ระหว่างดำเนินการ</div>
+          </div>
+        </div>
+        <div className="stat stat--todo">
+          <div className="stat__icon"><Icon.CircleDashed/></div>
+          <div className="stat__body">
+            <div className="stat__label">ยังไม่เริ่ม</div>
+            <div className="stat__value">{stats.todo}</div>
+            <div className="stat__hint">รอดำเนินการ</div>
+          </div>
+        </div>
+        <div className="stat stat--skip">
+          <div className="stat__icon"><Icon.MinusCircle/></div>
+          <div className="stat__body">
+            <div className="stat__label">ไม่ต้องทำ</div>
+            <div className="stat__value">{stats.skip}</div>
+            <div className="stat__hint">ไม่ต้องสรุป</div>
+          </div>
+        </div>
+      </section>
+
+      <div className="toolbar">
+        <div className="search">
+          <span className="search__icon"><Icon.Search/></span>
+          <input
+            type="text"
+            placeholder="ค้นหาจากชื่องาน…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+        <select className="select" value={sort} onChange={(e) => setSort(e.target.value)}>
+          <option value="date-desc">เรียงวันที่: ใหม่ → เก่า</option>
+          <option value="date-asc">เรียงวันที่: เก่า → ใหม่</option>
+        </select>
+        <button
+          className={`btn ${filtersOpen || activeFilterCount > 0 ? 'btn--active' : ''}`}
+          onClick={() => setFiltersOpen(o => !o)}
+          aria-expanded={filtersOpen}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M7 12h10M10 18h4"/></svg>
+          ตัวกรอง
+          {activeFilterCount > 0 && <span className="filter-count">{activeFilterCount}</span>}
+        </button>
+        <div className="view-toggle" role="tablist" aria-label="มุมมอง">
+          <button
+            className={view === 'table' ? 'active' : ''}
+            onClick={() => setView('table')}
+            aria-pressed={view === 'table'}
+          ><Icon.Table/> ตาราง</button>
+          <button
+            className={view === 'cards' ? 'active' : ''}
+            onClick={() => setView('cards')}
+            aria-pressed={view === 'cards'}
+          ><Icon.Cards/> การ์ด</button>
+        </div>
+        <button className="btn btn--primary" onClick={openNew}>
+          <Icon.Plus/> เพิ่มงาน
+        </button>
+      </div>
+
+      {filtersOpen && (
+        <div className="filter-panel">
+          <div className="filter-row">
+            <div className="filter-row__label">ประเภทงาน</div>
+            <div className="chip-picker">
+              {WORK_TYPES.map(wt => (
+                <button
+                  key={wt}
+                  type="button"
+                  className={`chip chip--sm ${typeFilter.includes(wt) ? 'active' : ''}`}
+                  onClick={() => toggleFilter(typeFilter, setTypeFilter, wt)}
+                >{wt}</button>
+              ))}
+              <button
+                type="button"
+                className={`chip chip--sm ${typeFilter.includes('__none__') ? 'active' : ''}`}
+                onClick={() => toggleFilter(typeFilter, setTypeFilter, '__none__')}
+              >ไม่ระบุ</button>
+            </div>
+          </div>
+          <div className="filter-row">
+            <div className="filter-row__label">สรุปสาระสำคัญ</div>
+            <div className="chip-picker">
+              {STATUSES.map(s => (
+                <button
+                  key={s.key}
+                  type="button"
+                  className={`chip chip--sm ${statusFilter.includes(s.key) ? 'active' : ''}`}
+                  onClick={() => toggleFilter(statusFilter, setStatusFilter, s.key)}
+                >
+                  <span className="chip__dot" style={{background: s.color}}/>{s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="filter-row">
+            <div className="filter-row__label">มอบหมาย</div>
+            <div className="chip-picker">
+              {[
+                { key: 'all', label: 'ทั้งหมด' },
+                { key: 'yes', label: 'ได้รับมอบหมาย' },
+                { key: 'no',  label: 'ไม่ได้รับมอบหมาย' },
+              ].map(opt => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  className={`chip chip--sm ${assignedFilter === opt.key ? 'active' : ''}`}
+                  onClick={() => setAssignedFilter(opt.key)}
+                >{opt.label}</button>
+              ))}
+            </div>
+          </div>
+          {activeFilterCount > 0 && (
+            <div className="filter-row">
+              <div className="filter-row__summary">
+                แสดง <strong>{visible.length}</strong> จากทั้งหมด <strong>{entries.length}</strong> รายการ
+              </div>
+              <button className="btn btn--sm btn--ghost" onClick={clearFilters}>◯ ล้างตัวกรองทั้งหมด</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {loading && entries.length === 0 ? (
+        <LoadingState/>
+      ) : loadError ? (
+        <ErrorState message={loadError} onRetry={() => loadEntries(apiUrl)} onSettings={() => setSettingsOpen(true)}/>
+      ) : visible.length === 0 ? (
+        <EmptyState
+          isFiltered={query.length > 0}
+          onAdd={openNew}
+          onClear={() => setQuery('')}
+        />
+      ) : view === 'table' ? (
+        <TableView entries={visible} onEdit={openEdit} onDelete={setDeleting}/>
+      ) : (
+        <CardsView entries={visible} onEdit={openEdit} onDelete={setDeleting}/>
+      )}
+
+      {editing && (
+        <EntryModal entry={editing} onSave={saveEntry} onClose={closeModal}/>
+      )}
+
+      {deleting && (
+        <ConfirmDelete entry={deleting} onConfirm={confirmDelete} onClose={() => setDeleting(null)}/>
+      )}
+
+      {settingsOpen && (
+        <SettingsModal
+          apiUrl={apiUrl}
+          onClose={() => setSettingsOpen(false)}
+          onChangeUrl={(url) => {
+            localStorage.setItem(API_URL_KEY, url);
+            setApiUrl(url);
+            setSettingsOpen(false);
+          }}
+          onDisconnect={() => {
+            localStorage.removeItem(API_URL_KEY);
+            setApiUrl('');
+            setEntries([]);
+            setSettingsOpen(false);
+          }}
+          onRefresh={() => { loadEntries(apiUrl); setSettingsOpen(false); }}
+        />
+      )}
+
+      {toast && <Toast {...toast}/>}
+
+      {window.TweaksPanel && (
+        <window.TweaksPanel title="Tweaks">
+          <window.TweakSection title="แบบอักษร">
+            <window.TweakSelect
+              label="ฟอนต์"
+              value={t.font}
+              onChange={(v) => setTweak('font', v)}
+              options={FONT_OPTIONS.map(f => ({ value: f.key, label: f.label }))}
+            />
+            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>
+              เปลี่ยนแบบอักษรของทั้งแอป
+            </div>
+          </window.TweakSection>
+        </window.TweaksPanel>
+      )}
+    </div>
+  );
+}
+
+// ----- Sub components ----------------------------------------------------
+
+function SyncStatus({ busy, error }) {
+  if (error) {
+    return (
+      <div className="sync sync--err" title={error}>
+        <Icon.Warn/> ออฟไลน์
+      </div>
+    );
+  }
+  if (busy > 0) {
+    return (
+      <div className="sync sync--busy">
+        <span className="spinner"/> กำลังบันทึก…
+      </div>
+    );
+  }
+  return (
+    <div className="sync sync--ok">
+      <Icon.Cloud/> เชื่อมต่อแล้ว
+    </div>
+  );
+}
+
+function StatusPill({ status }) {
+  const m = statusMeta(status);
+  const iconMap = {
+    done:  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>,
+    doing: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>,
+    todo:  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="3 2.5"><circle cx="12" cy="12" r="9"/></svg>,
+    skip:  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>,
+  };
+  return <span className={`pill pill--${m.key}`}>{iconMap[m.key]}{m.short}</span>;
+}
+
+function isAssigned(v) {
+  return v === true || v === 'TRUE' || v === 'yes' || v === 'true';
+}
+
+function AssignedBadge({ assigned }) {
+  if (!isAssigned(assigned)) return null;
+  return (
+    <span className="assigned-badge" title="ได้รับมอบหมายให้ดำเนินการ">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+      ได้รับมอบหมาย
+    </span>
+  );
+}
+
+function TableView({ entries, onEdit, onDelete }) {
+  return (
+    <div className="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style={{width:'34%'}}>ชื่องาน</th>
+            <th style={{width:'16%'}}>ประเภทงาน</th>
+            <th style={{width:'16%'}}>วันที่ปฏิบัติงาน</th>
+            <th style={{width:'22%'}}>สรุปสาระสำคัญ</th>
+            <th style={{width:'12%', textAlign:'right'}}>การจัดการ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {entries.map(e => (
+            <tr key={e.id} className="row">
+              <td className="cell--name">{e.name}</td>
+              <td>{e.workType ? <span className="type-chip">{e.workType}</span> : <span className="cell--muted">—</span>}</td>
+              <td className="cell--date">{formatThaiDate(e.date)}</td>
+              <td><div className="status-cell"><StatusPill status={e.status}/><AssignedBadge assigned={e.assigned}/></div></td>
+              <td className="cell--actions">
+                <button className="btn btn--ghost btn--sm" onClick={() => onEdit(e)} title="แก้ไข">
+                  <Icon.Edit/> แก้ไข
+                </button>
+                <button className="btn btn--ghost btn--sm" onClick={() => onDelete(e)} title="ลบ" style={{color:'var(--danger)'}}>
+                  <Icon.Trash/>
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function CardsView({ entries, onEdit, onDelete }) {
+  return (
+    <div className="cards">
+      {entries.map(e => (
+        <div key={e.id} className="card">
+          <div className="card__header">
+            <div className="card__title">{e.name}</div>
+            <div className="status-cell"><StatusPill status={e.status}/></div>
+          </div>
+          {e.workType && <div className="card__type"><span className="type-chip">{e.workType}</span></div>}
+          <AssignedBadge assigned={e.assigned}/>
+          <div className="card__meta">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+            </svg>
+            {formatThaiDate(e.date, { long: true })}
+          </div>
+          <div className="card__actions">
+            <button className="btn btn--ghost btn--sm" onClick={() => onEdit(e)}>
+              <Icon.Edit/> แก้ไข
+            </button>
+            <button className="btn btn--ghost btn--sm" onClick={() => onDelete(e)} style={{color:'var(--danger)'}}>
+              <Icon.Trash/> ลบ
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function LoadingState() {
+  return (
+    <div className="empty">
+      <div className="empty__icon"><span className="spinner spinner--lg"/></div>
+      <div className="empty__title">กำลังโหลดข้อมูล…</div>
+      <div className="empty__desc">กำลังดึงรายการงานจาก Google Sheet</div>
+    </div>
+  );
+}
+
+function ErrorState({ message, onRetry, onSettings }) {
+  return (
+    <div className="empty empty--err">
+      <div className="empty__icon" style={{background:'var(--danger-bg)', color:'var(--danger)'}}><Icon.Warn/></div>
+      <div className="empty__title">เชื่อมต่อไม่สำเร็จ</div>
+      <div className="empty__desc" style={{wordBreak:'break-word'}}>
+        ไม่สามารถเชื่อมต่อ Google Sheet ได้<br/>
+        <code style={{fontSize:12, color:'var(--text-soft)'}}>{message}</code>
+      </div>
+      <div style={{display:'flex', gap:8, justifyContent:'center'}}>
+        <button className="btn" onClick={onRetry}><Icon.Sync/> ลองใหม่</button>
+        <button className="btn btn--primary" onClick={onSettings}><Icon.Settings/> ตั้งค่า</button>
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({ isFiltered, onAdd, onClear }) {
+  if (isFiltered) {
+    return (
+      <div className="empty">
+        <div className="empty__icon"><Icon.Search/></div>
+        <div className="empty__title">ไม่พบรายการที่ค้นหา</div>
+        <div className="empty__desc">ลองใช้คำค้นอื่น หรือล้างคำค้นเพื่อแสดงงานทั้งหมด</div>
+        <button className="btn" onClick={onClear}>ล้างคำค้น</button>
+      </div>
+    );
+  }
+  return (
+    <div className="empty">
+      <div className="empty__icon"><Icon.Inbox/></div>
+      <div className="empty__title">ยังไม่มีการบันทึกงาน</div>
+      <div className="empty__desc">เริ่มต้นบันทึกงานแรกของคุณเพื่อติดตามความคืบหน้า</div>
+      <button className="btn btn--primary" onClick={onAdd}><Icon.Plus/> เพิ่มงานแรก</button>
+    </div>
+  );
+}
+
+function EntryModal({ entry, onSave, onClose }) {
+  const [name, setName] = useState(entry.name || '');
+  const [workType, setWorkType] = useState(entry.workType || '');
+  const [date, setDate] = useState(entry.date || todayIso());
+  const [status, setStatus] = useState(entry.status || 'todo');
+  const [assigned, setAssigned] = useState(entry.assigned === true || entry.assigned === 'TRUE' || entry.assigned === 'yes');
+  const [touched, setTouched] = useState(false);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const isNew = !entry.id;
+  const valid = name.trim().length > 0;
+
+  const submit = (e) => {
+    e?.preventDefault();
+    setTouched(true);
+    if (!valid) return;
+    onSave({ id: entry.id, name: name.trim(), workType, date, status, assigned });
+  };
+
+  return (
+    <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <form className="modal" onSubmit={submit}>
+        <div className="modal__header">
+          <h2 className="modal__title">{isNew ? 'เพิ่มงานใหม่' : 'แก้ไขงาน'}</h2>
+          <p className="modal__desc">{isNew ? 'กรอกรายละเอียดของงานที่ต้องการบันทึก' : 'ปรับปรุงข้อมูลของงานนี้'}</p>
+        </div>
+        <div className="modal__body">
+          <div className="field">
+            <label className="field__label" htmlFor="name">ชื่องาน</label>
+            <input
+              id="name"
+              ref={inputRef}
+              type="text"
+              placeholder="เช่น ประชุมสรุปโครงการ Q2"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onBlur={() => setTouched(true)}
+              style={touched && !valid ? { borderColor: 'var(--danger)' } : {}}
+            />
+            {touched && !valid && <span className="field__hint" style={{color:'var(--danger)'}}>กรุณาระบุชื่องาน</span>}
+          </div>
+
+          <div className="field">
+            <label className="field__label">ประเภทงาน</label>
+            <div className="chip-picker" role="radiogroup">
+              {WORK_TYPES.map(wt => (
+                <button
+                  key={wt}
+                  type="button"
+                  role="radio"
+                  aria-checked={workType === wt}
+                  className={`chip ${workType === wt ? 'active' : ''}`}
+                  onClick={() => setWorkType(workType === wt ? '' : wt)}
+                >
+                  {wt}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="field">
+            <label className="field__label" htmlFor="date">วันที่ปฏิบัติงาน</label>
+            <input
+              id="date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
+
+          <div className="field">
+            <label className="field__label">สรุปสาระสำคัญ</label>
+            <div className="status-picker" role="radiogroup">
+              {STATUSES.map(s => (
+                <button
+                  key={s.key}
+                  type="button"
+                  role="radio"
+                  aria-checked={status === s.key}
+                  className={`status-option ${status === s.key ? 'active' : ''}`}
+                  onClick={() => setStatus(s.key)}
+                >
+                  <span className="status-option__dot" style={{background: s.color}}/>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="field">
+            <label className="field__label">ได้รับมอบหมายให้ดำเนินการ</label>
+            <div className="toggle-group" role="radiogroup">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={assigned === true}
+                className={`toggle-option ${assigned === true ? 'active' : ''}`}
+                onClick={() => setAssigned(true)}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                ใช่ ได้รับมอบหมาย
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={assigned === false}
+                className={`toggle-option ${assigned === false ? 'active' : ''}`}
+                onClick={() => setAssigned(false)}
+              >
+                ไม่ได้รับมอบหมาย
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="modal__footer">
+          <button type="button" className="btn" onClick={onClose}>ยกเลิก</button>
+          <button type="submit" className="btn btn--primary" disabled={!valid}>
+            {isNew ? 'บันทึก' : 'บันทึกการแก้ไข'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function ConfirmDelete({ entry, onConfirm, onClose }) {
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'Enter')  onConfirm();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  return (
+    <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal" style={{maxWidth: 420}}>
+        <div className="modal__header">
+          <h2 className="modal__title">ยืนยันการลบ</h2>
+          <p className="modal__desc">
+            คุณแน่ใจหรือไม่ว่าต้องการลบงาน "<strong style={{color:'var(--text)'}}>{entry.name}</strong>" การกระทำนี้ไม่สามารถยกเลิกได้
+          </p>
+        </div>
+        <div className="modal__footer">
+          <button className="btn" onClick={onClose}>ยกเลิก</button>
+          <button className="btn btn--danger" onClick={onConfirm}>ลบงานนี้</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SettingsModal({ apiUrl, onClose, onChangeUrl, onDisconnect, onRefresh }) {
+  const [url, setUrl] = useState(apiUrl);
+  const [confirmDC, setConfirmDC] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const changed = url.trim() && url.trim() !== apiUrl;
+
+  return (
+    <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal" style={{maxWidth: 520}}>
+        <div className="modal__header">
+          <h2 className="modal__title">ตั้งค่า</h2>
+          <p className="modal__desc">การเชื่อมต่อ Google Sheet</p>
+        </div>
+        <div className="modal__body">
+          <div className="field">
+            <label className="field__label">URL ของ Google Apps Script</label>
+            <input
+              type="text"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              style={{padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 12}}
+            />
+            <span className="field__hint">URL จาก Deploy → Web app ลงท้ายด้วย /exec</span>
+          </div>
+
+          <div style={{display:'flex', gap:8, flexWrap:'wrap'}}>
+            <button className="btn btn--sm" onClick={onRefresh}>
+              <Icon.Sync/> รีโหลดข้อมูล
+            </button>
+            {!confirmDC ? (
+              <button className="btn btn--sm" onClick={() => setConfirmDC(true)} style={{color:'var(--danger)'}}>
+                <Icon.Trash/> ตัดการเชื่อมต่อ
+              </button>
+            ) : (
+              <button className="btn btn--sm btn--danger" onClick={onDisconnect}>
+                ยืนยันตัดการเชื่อมต่อ
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="modal__footer">
+          <button className="btn" onClick={onClose}>ปิด</button>
+          <button
+            className="btn btn--primary"
+            disabled={!changed}
+            onClick={() => onChangeUrl(url.trim())}
+          >
+            บันทึก URL ใหม่
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Toast({ msg, kind }) {
+  return (
+    <div className={`toast toast--${kind}`}>
+      {kind === 'error' ? <Icon.Warn/> : <Icon.Check/>}
+      <span>{msg}</span>
+    </div>
+  );
+}
+
+// ----- Setup screen ------------------------------------------------------
+
+function SetupScreen({ onConnect }) {
+  const [url, setUrl] = useState('');
+  const [testing, setTesting] = useState(false);
+  const [error, setError] = useState(null);
+
+  const ok = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec\/?$/.test(url.trim());
+
+  const test = async () => {
+    setTesting(true);
+    setError(null);
+    try {
+      const entries = await apiGet(url.trim());
+      onConnect(url.trim());
+      void entries;
+    } catch (err) {
+      setError(err.message || String(err));
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  return (
+    <div className="setup">
+      <div className="setup__inner">
+        <div className="setup__brand">
+          <div className="setup__logo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h2M14 14h2M8 18h2M14 18h2"/>
+            </svg>
+          </div>
+          <div>
+            <h1 className="setup__title">บันทึกงาน</h1>
+            <p className="setup__subtitle">เชื่อมต่อ Google Sheet เพื่อเริ่มใช้งาน</p>
+          </div>
+        </div>
+
+        <ol className="setup__steps">
+          <li>
+            <strong>สร้าง Google Sheet</strong> ใหม่ ใส่หัวคอลัมน์แถวที่ 1:
+            <code className="setup__code">id · name · date · status · createdAt</code>
+          </li>
+          <li>
+            ใน Sheet เปิด <strong>Extensions → Apps Script</strong> วางโค้ดจากไฟล์{' '}
+            <code className="setup__inline">apps-script.gs</code> แก้ <code className="setup__inline">SHEET_ID</code>
+          </li>
+          <li>
+            กด <strong>Deploy → New deployment → Web app</strong>
+            <br/>
+            <span style={{color:'var(--text-soft)', fontSize:13}}>
+              Execute as: Me · Who has access: Anyone
+            </span>
+          </li>
+          <li>
+            คัดลอก <strong>Web app URL</strong> มาวางด้านล่าง
+          </li>
+        </ol>
+
+        <div className="setup__form">
+          <label className="field__label">Web app URL</label>
+          <input
+            type="text"
+            placeholder="https://script.google.com/macros/s/.../exec"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            className="setup__input"
+          />
+          {error && (
+            <div className="setup__error">
+              <Icon.Warn/> เชื่อมต่อไม่สำเร็จ: <code>{error}</code>
+            </div>
+          )}
+          <button
+            className="btn btn--primary"
+            onClick={test}
+            disabled={!ok || testing}
+            style={{justifyContent:'center', padding:'12px 18px'}}
+          >
+            {testing ? <><span className="spinner"/> กำลังทดสอบ…</> : <><Icon.Cloud/> เชื่อมต่อ</>}
+          </button>
+          {url && !ok && (
+            <div className="setup__hint">
+              URL ควรลงท้ายด้วย <code>/exec</code>
+            </div>
+          )}
+        </div>
+
+        <div className="setup__foot">
+          ดูคู่มือฉบับเต็มในไฟล์ <code>SETUP.md</code> ในโปรเจกต์
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ----- mount -------------------------------------------------------------
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+
+</script>
+
+</body>
+</html>
