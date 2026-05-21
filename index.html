@@ -1144,7 +1144,7 @@ function App() {
     try { return await fn(); } finally { setBusy(b => Math.max(0, b - 1)); }
   };
 
-  const openNew  = () => setEditing({ id: null, name: '', workType: '', date: todayIso(), status: 'todo', assigned: false });
+  const   = () => setEditing({ id: null, name: '', workType: '', date: todayIso(), status: 'todo', assigned: false });
   const openEdit = (e) => setEditing({ ...e });
   const closeModal = () => setEditing(null);
 
@@ -1285,7 +1285,7 @@ function App() {
             <Icon.Cards/> การ์ด
           </button>
         </div>
-        <button className="btn btn--primary" onClick={openNew}>
+        <button className="btn btn--primary" onClick={onAdd}>
           <Icon.Plus/> เพิ่มงาน
         </button>
       </div>
