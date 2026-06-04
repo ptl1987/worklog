@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>แดชบอร์ดสรุปงาน</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --bg: #f5f4ef;
+    --surface: #ffffff;
+    --surface-muted: #faf9f5;
+    --border: #e7e6e1;
+    --border-strong: #d6d5cf;
+    --text: #1a1a17;
+    --text-muted: #6b6a64;
+    --text-soft: #98968f;
+    --accent: #2c5f4f;
+    --accent-soft: #e6efea;
+    --accent-strong: #1f4a3c;
+
+    --done: #1f7a4d;
+    --done-bg: #e3f1e9;
+    --doing: #b06a05;
+    --doing-bg: #fbeed1;
+    --todo: #6b6a64;
+    --todo-bg: #ececea;
+    --skip: #4a6b80;
+    --skip-bg: #e6eef3;
+    --assigned: #8b4a8a;
+    --assigned-soft: #f1e6f0;
+
+    --danger: #b3261e;
+    --danger-bg: #fbe9e7;
+
+    --radius: 12px;
+    --radius-lg: 16px;
+    --shadow-card: 0 1px 3px rgba(20,20,18,0.04);
+    --shadow-soft: 0 8px 28px -12px rgba(20,20,18,0.18);
+
+    --font: 'IBM Plex Sans Thai', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 0% 0%, rgba(44,95,79,0.05), transparent 42%),
+      radial-gradient(circle at 100% 100%, rgba(44,95,79,0.04), transparent 42%);
+    background-attachment: fixed;
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+  button { font-family: inherit; cursor: pointer; }
+  a { color: inherit; }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 40px 28px 90px; }
+
+  /* ---------- Header ---------- */
+  .head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px; flex-wrap: wrap;
+    padding-bottom: 22px; margin-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .head__left { display: flex; align-items: center; gap: 16px; }
+  .head__logo {
+    width: 50px; height: 50px; border-radius: 13px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+    color: #fff; display: grid; place-items: center; flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(44,95,79,0.22);
+  }
+  .head__title { margin: 0; font-size: 27px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; }
+  .head__sub { margin: 4px 0 0; font-size: 13.5px; color: var(--text-muted); }
+  .head__right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .pill-link, .ghost-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 15px; border-radius: 999px; font-size: 13.5px; font-weight: 500;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    text-decoration: none; transition: all 0.15s ease;
+  }
+  .pill-link:hover, .ghost-btn:hover { border-color: var(--accent); color: var(--accent-strong); background: var(--accent-soft); }
+  .ghost-btn:disabled { opacity: 0.5; cursor: default; }
+  .stamp { font-size: 12.5px; color: var(--text-soft); display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+  .stamp b { color: var(--text-muted); font-weight: 600; }
+
+  /* ---------- KPI strip ---------- */
+  .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 22px; }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 18px 18px 16px; box-shadow: var(--shadow-card);
+    position: relative; overflow: hidden;
+  }
+  .kpi::before { content:''; position:absolute; inset:0 0 auto 0; height:3px; background: currentColor; opacity:0.85; }
+  .kpi__label { font-size: 12.5px; color: var(--text-muted); font-weight: 500; margin-bottom: 8px; }
+  .kpi__value { font-size: 34px; font-weight: 700; line-height: 1; font-feature-settings:'tnum'; color: currentColor; }
+  .kpi__hint { font-size: 11.5px; color: var(--text-soft); margin-top: 7px; }
+  .kpi--total { color: var(--accent); }
+  .kpi--done  { color: var(--done); }
+  .kpi--doing { color: var(--doing); }
+  .kpi--todo  { color: var(--todo); }
+  .kpi--skip  { color: var(--skip); }
+  .kpi__value small { font-size: 16px; font-weight: 600; color: var(--text-soft); margin-left: 3px; }
+
+  /* ---------- Panels grid ---------- */
+  .grid-2 { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 18px; margin-bottom: 18px; }
+  .panel {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 22px 24px; box-shadow: var(--shadow-card);
+  }
+  .panel__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  .panel__title { font-size: 16px; font-weight: 600; margin: 0; }
+  .panel__note { font-size: 12.5px; color: var(--text-soft); }
+
+  /* ---------- Donut ---------- */
+  .donut-wrap { display: flex; align-items: center; gap: 26px; }
+  .donut { position: relative; flex-shrink: 0; }
+  .donut__center {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+  }
+  .donut__pct { font-size: 38px; font-weight: 700; line-height: 1; color: var(--done); font-feature-settings:'tnum'; }
+  .donut__lbl { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .legend { display: flex; flex-direction: column; gap: 11px; flex: 1; min-width: 0; }
+  .legend__row { display: flex; align-items: center; gap: 10px; font-size: 13.5px; }
+  .legend__dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+  .legend__name { color: var(--text-muted); flex: 1; }
+  .legend__count { font-weight: 700; font-feature-settings:'tnum'; }
+  .legend__pct { color: var(--text-soft); font-size: 12px; width: 42px; text-align: right; font-feature-settings:'tnum'; }
+
+  /* ---------- Stacked bars (work type) ---------- */
+  .barlist { display: flex; flex-direction: column; gap: 16px; }
+  .barrow__top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .barrow__name { font-size: 13.5px; font-weight: 500; }
+  .barrow__count { font-size: 12.5px; color: var(--text-soft); font-feature-settings:'tnum'; }
+  .barrow__count b { color: var(--done); font-weight: 700; }
+  .stackbar { display: flex; height: 14px; border-radius: 999px; overflow: hidden; background: var(--surface-muted); box-shadow: inset 0 0 0 1px var(--border); }
+  .stackbar > span { height: 100%; transition: width 0.4s ease; }
+
+  /* ---------- Monthly columns ---------- */
+  .months { display: flex; align-items: flex-end; gap: 14px; height: 200px; padding-top: 10px; }
+  .month { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; height: 100%; }
+  .month__bars { width: 100%; max-width: 46px; flex: 1; display: flex; flex-direction: column-reverse; justify-content: flex-start; border-radius: 7px 7px 0 0; overflow: hidden; background: var(--surface-muted); box-shadow: inset 0 0 0 1px var(--border); }
+  .month__seg { width: 100%; transition: height 0.4s ease; }
+  .month__total { font-size: 13px; font-weight: 700; font-feature-settings:'tnum'; }
+  .month__label { font-size: 11.5px; color: var(--text-muted); white-space: nowrap; }
+  .month__col-inner { width: 100%; max-width: 46px; height: 100%; display: flex; align-items: flex-end; }
+
+  /* ---------- Recent / lists ---------- */
+  .list { display: flex; flex-direction: column; }
+  .litem {
+    display: flex; align-items: center; gap: 14px; padding: 13px 2px;
+    border-bottom: 1px solid var(--border);
+  }
+  .litem:last-child { border-bottom: none; }
+  .litem__main { flex: 1; min-width: 0; }
+  .litem__name { font-size: 14px; font-weight: 500; margin-bottom: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .litem__meta { font-size: 12px; color: var(--text-soft); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .litem__date { font-size: 12.5px; color: var(--text-muted); font-feature-settings:'tnum'; white-space: nowrap; flex-shrink: 0; }
+  .litem__date--soon { color: var(--doing); font-weight: 600; }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 600;
+    white-space: nowrap; border: 1px solid transparent;
+  }
+  .pill__dot { width: 7px; height: 7px; border-radius: 50%; }
+  .pill--done  { background: var(--done-bg);  color: var(--done); }
+  .pill--doing { background: var(--doing-bg); color: var(--doing); }
+  .pill--todo  { background: var(--todo-bg);  color: var(--todo); }
+  .pill--skip  { background: var(--skip-bg);  color: var(--skip); }
+  .type-chip { display:inline-block; padding: 2px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-strong); font-size: 11.5px; font-weight: 600; }
+  .assign-chip { display:inline-flex; align-items:center; gap:4px; padding:2px 9px; border-radius:999px; background: var(--assigned-soft); color: var(--assigned); font-size: 11.5px; font-weight: 600; }
+
+  /* ---------- Assignment split ---------- */
+  .split { display: flex; flex-direction: column; gap: 16px; }
+  .split__bar { display:flex; height: 30px; border-radius: 8px; overflow:hidden; box-shadow: inset 0 0 0 1px var(--border); }
+  .split__bar > span { display:flex; align-items:center; justify-content:center; color:#fff; font-size:12.5px; font-weight:700; transition: width 0.4s ease; }
+  .split__legend { display:flex; gap: 22px; }
+  .splitleg { display:flex; align-items:center; gap:9px; }
+  .splitleg__sw { width: 14px; height:14px; border-radius:5px; }
+  .splitleg__v { font-size: 22px; font-weight: 700; line-height:1; font-feature-settings:'tnum'; }
+  .splitleg__l { font-size: 12px; color: var(--text-muted); }
+  .donut-mini-wrap { display:flex; align-items:center; gap: 20px; }
+
+  /* ---------- States ---------- */
+  .state { display: grid; place-items: center; min-height: 60vh; text-align: center; padding: 40px; }
+  .state__box { max-width: 420px; }
+  .state__title { font-size: 18px; font-weight: 600; margin: 14px 0 6px; }
+  .state__desc { color: var(--text-muted); font-size: 14px; }
+  .state__desc code { font-family: ui-monospace, Menlo, monospace; font-size: 12px; background: var(--surface-muted); padding: 2px 6px; border-radius: 5px; word-break: break-all; }
+  .spinner { width: 26px; height: 26px; border: 3px solid var(--accent-soft); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .empty-mini { text-align:center; color: var(--text-soft); font-size: 13.5px; padding: 30px 0; }
+
+  .full { grid-column: 1 / -1; }
+
+  /* ---------- Filter bar ---------- */
+  .filterbar {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 14px 16px; box-shadow: var(--shadow-card); margin-bottom: 22px;
+  }
+  .search {
+    position: relative; flex: 1 1 260px; min-width: 200px;
+  }
+  .search svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--text-soft); pointer-events: none; }
+  .search input {
+    width: 100%; font-family: inherit; font-size: 14px; color: var(--text);
+    padding: 10px 36px 10px 38px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--surface-muted);
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .search input::placeholder { color: var(--text-soft); }
+  .search input:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+  .search__clear {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    border: none; background: none; color: var(--text-soft); display: grid; place-items: center;
+    width: 24px; height: 24px; border-radius: 50%; line-height: 0;
+  }
+  .search__clear:hover { background: var(--surface-muted); color: var(--text); }
+  .selectwrap { position: relative; display: inline-flex; }
+  .selectwrap svg { position: absolute; right: 11px; top: 50%; transform: translateY(-50%); color: var(--text-soft); pointer-events: none; }
+  .filterbar select {
+    appearance: none; -webkit-appearance: none; font-family: inherit; font-size: 13.5px; font-weight: 500;
+    color: var(--text); background: var(--surface); cursor: pointer;
+    padding: 10px 34px 10px 14px; border-radius: 10px; border: 1px solid var(--border);
+    transition: border-color 0.15s ease;
+  }
+  .filterbar select:hover { border-color: var(--border-strong); }
+  .filterbar select:focus { outline: none; border-color: var(--accent); }
+  .filterbar select[data-active="1"] { border-color: var(--accent); color: var(--accent-strong); background: var(--accent-soft); }
+  .filter-count { font-size: 12.5px; color: var(--text-soft); margin-left: auto; white-space: nowrap; }
+  .filter-reset {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 500;
+    padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text-muted);
+  }
+  .filter-reset:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-bg); }
+  @media (max-width: 620px) {
+    .filterbar select, .selectwrap { flex: 1 1 auto; }
+    .selectwrap select { width: 100%; }
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 960px) {
+    .kpis { grid-template-columns: repeat(3, 1fr); }
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 620px) {
+    .wrap { padding: 26px 14px 70px; }
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .donut-wrap { flex-direction: column; align-items: stretch; }
+    .donut { align-self: center; }
+    .months { gap: 7px; }
+    .head__title { font-size: 22px; }
+  }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" data-presets="react">
+
+const { useState, useEffect, useMemo, useCallback } = React;
+
+// ===== shared with main app =====
+const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbxKM5sh0wqfmfmrVrKt4cB04Z0jYOhyhgyMdu3qhoKYyFRl18aUEVDqsL9sEgA4SkQh/exec';
+const API_URL_KEY = 'work-log-api-url-v1';
+
+const STATUSES = [
+  { key: 'done',  label: 'เสร็จแล้ว',   color: 'var(--done)' },
+  { key: 'doing', label: 'กำลังดำเนินการ',     color: 'var(--doing)' },
+  { key: 'todo',  label: 'ยังไม่เริ่ม', color: 'var(--todo)' },
+  { key: 'skip',  label: 'ไม่ต้องทำ',   color: 'var(--skip)' },
+];
+const STATUS_COLOR = { done: '#1f7a4d', doing: '#b06a05', todo: '#6b6a64', skip: '#4a6b80' };
+
+const THAI_MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const THAI_MONTHS_LONG = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+function formatThaiDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso + 'T00:00:00');
+  if (isNaN(d)) return iso;
+  return `${d.getDate()} ${THAI_MONTHS[d.getMonth()]} ${(d.getFullYear()+543).toString().slice(-2)}`;
+}
+function fullThaiToday() {
+  const d = new Date();
+  const wd = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'][d.getDay()];
+  return `วัน${wd}ที่ ${d.getDate()} ${THAI_MONTHS_LONG[d.getMonth()]} ${d.getFullYear()+543}`;
+}
+function todayIso() {
+  const d = new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+}
+function isAssigned(v) { return v === true || v === 'TRUE' || v === 'yes' || v === 'true'; }
+function statusLabel(k) { return (STATUSES.find(s => s.key === k) || { label: k }).label; }
+
+async function apiGet(url) {
+  const res = await fetch(url, { method: 'GET' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.error || 'unknown error');
+  return data.entries || [];
+}
+
+// ===== icons =====
+const Icon = {
+  Dash: () => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6" rx="0.5"/><rect x="12.5" y="7" width="3" height="10" rx="0.5"/><rect x="18" y="13" width="3" height="4" rx="0.5"/></svg>),
+  Refresh: () => (<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>),
+  Back: () => (<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>),
+  Warn: () => (<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>),
+  Inbox: () => (<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5.5 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.5A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.5z"/></svg>),
+  Search: () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>),
+  X: () => (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>),
+  Chevron: () => (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>),
+};
+
+// ===== Donut =====
+function Donut({ segments, size = 168, thickness = 22, centerTop, centerBottom, centerColor }) {
+  const r = (size - thickness) / 2;
+  const c = 2 * Math.PI * r;
+  const total = segments.reduce((s, x) => s + x.value, 0);
+  let offset = 0;
+  return (
+    <div className="donut" style={{ width: size, height: size }}>
+      <svg width={size} height={size}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--surface-muted)" strokeWidth={thickness} />
+        {total > 0 && segments.map((s, i) => {
+          if (s.value <= 0) return null;
+          const len = (s.value / total) * c;
+          const el = (
+            <circle key={i} cx={size/2} cy={size/2} r={r} fill="none"
+              stroke={s.color} strokeWidth={thickness}
+              strokeDasharray={`${len} ${c - len}`} strokeDashoffset={-offset}
+              transform={`rotate(-90 ${size/2} ${size/2})`}
+              strokeLinecap="butt" />
+          );
+          offset += len;
+          return el;
+        })}
+      </svg>
+      {(centerTop != null) && (
+        <div className="donut__center">
+          <div className="donut__pct" style={centerColor ? { color: centerColor } : null}>{centerTop}</div>
+          {centerBottom && <div className="donut__lbl">{centerBottom}</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ===== App =====
+function App() {
+  const apiUrl = (typeof localStorage !== 'undefined' && localStorage.getItem(API_URL_KEY)) || DEFAULT_API_URL;
+  const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [refreshedAt, setRefreshedAt] = useState(null);
+
+  // ----- filters -----
+  const [search, setSearch] = useState('');
+  const [monthFilter, setMonthFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+
+  const load = useCallback(async () => {
+    setLoading(true); setError(null);
+    try {
+      const list = await apiGet(apiUrl);
+      setEntries(list);
+      setRefreshedAt(new Date());
+    } catch (err) {
+      setError(err.message || String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [apiUrl]);
+
+  useEffect(() => { load(); }, [load]);
+
+  // ----- filter options (from all entries) -----
+  const typeOptions = useMemo(() => {
+    const set = new Set();
+    for (const e of entries) {
+      const t = (e.workType && String(e.workType).trim()) || 'ไม่ระบุประเภท';
+      set.add(t);
+    }
+    return [...set].sort((a, b) => a.localeCompare(b, 'th'));
+  }, [entries]);
+
+  const monthOptions = useMemo(() => {
+    const set = new Set();
+    for (const e of entries) if (e.date) set.add(String(e.date).slice(0, 7));
+    return [...set].sort().reverse().map(k => {
+      const [yy, mm] = k.split('-').map(Number);
+      return { key: k, label: `${THAI_MONTHS_LONG[mm - 1]} ${yy + 543}` };
+    });
+  }, [entries]);
+
+  // ----- apply filters -----
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return entries.filter(e => {
+      if (q && !String(e.name || '').toLowerCase().includes(q)) return false;
+      if (monthFilter !== 'all' && String(e.date || '').slice(0, 7) !== monthFilter) return false;
+      if (typeFilter !== 'all') {
+        const t = (e.workType && String(e.workType).trim()) || 'ไม่ระบุประเภท';
+        if (t !== typeFilter) return false;
+      }
+      return true;
+    });
+  }, [entries, search, monthFilter, typeFilter]);
+
+  const filterActive = search.trim() !== '' || monthFilter !== 'all' || typeFilter !== 'all';
+  const resetFilters = () => { setSearch(''); setMonthFilter('all'); setTypeFilter('all'); };
+
+  // ----- derived stats -----
+  const stats = useMemo(() => {
+    const s = { total: filtered.length, done: 0, doing: 0, todo: 0, skip: 0 };
+    for (const e of filtered) s[e.status] = (s[e.status] || 0) + 1;
+    s.pct = s.total ? Math.round((s.done / s.total) * 100) : 0;
+    return s;
+  }, [filtered]);
+
+  const byType = useMemo(() => {
+    const map = new Map();
+    for (const e of filtered) {
+      const key = (e.workType && String(e.workType).trim()) || 'ไม่ระบุประเภท';
+      if (!map.has(key)) map.set(key, { name: key, total: 0, done: 0, doing: 0, todo: 0, skip: 0 });
+      const row = map.get(key);
+      row.total++; row[e.status] = (row[e.status] || 0) + 1;
+    }
+    return [...map.values()].sort((a, b) => b.total - a.total);
+  }, [filtered]);
+
+  const months = useMemo(() => {
+    const dates = filtered.map(e => e.date).filter(Boolean).map(d => String(d).slice(0, 7)).sort();
+    if (!dates.length) return [];
+    const start = dates[0];
+    const endCand = [dates[dates.length - 1], todayIso().slice(0, 7)].sort();
+    const end = endCand[endCand.length - 1];
+    const keys = [];
+    let [y, m] = start.split('-').map(Number);
+    const [ey, em] = end.split('-').map(Number);
+    let guard = 0;
+    while ((y < ey || (y === ey && m <= em)) && guard < 60) {
+      keys.push(`${y}-${String(m).padStart(2, '0')}`);
+      m++; if (m > 12) { m = 1; y++; }
+      guard++;
+    }
+    const recent = keys.slice(-6);
+    const buckets = new Map(recent.map(k => [k, { key: k, total: 0, done: 0, doing: 0, todo: 0, skip: 0 }]));
+    for (const e of filtered) {
+      const k = e.date ? String(e.date).slice(0, 7) : null;
+      if (k && buckets.has(k)) { const b = buckets.get(k); b.total++; b[e.status] = (b[e.status] || 0) + 1; }
+    }
+    return recent.map(k => {
+      const b = buckets.get(k);
+      const [yy, mm] = k.split('-').map(Number);
+      return { ...b, label: `${THAI_MONTHS[mm - 1]} ${String(yy + 543).slice(-2)}` };
+    });
+  }, [filtered]);
+
+  const assignSplit = useMemo(() => {
+    let assigned = 0;
+    for (const e of filtered) if (isAssigned(e.assigned)) assigned++;
+    return { assigned, self: filtered.length - assigned, total: filtered.length };
+  }, [filtered]);
+
+  const upcoming = useMemo(() => {
+    const today = todayIso();
+    return filtered
+      .filter(e => e.date && String(e.date) >= today && (e.status === 'todo' || e.status === 'doing'))
+      .sort((a, b) => String(a.date).localeCompare(String(b.date)))
+      .slice(0, 6);
+  }, [filtered]);
+
+  const recent = useMemo(() => {
+    return [...filtered]
+      .sort((a, b) => {
+        const c = String(b.date || '').localeCompare(String(a.date || ''));
+        if (c !== 0) return c;
+        return (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0);
+      })
+      .slice(0, 7);
+  }, [filtered]);
+
+  const maxMonth = Math.max(1, ...months.map(m => m.total));
+  const segOrder = ['done', 'doing', 'todo', 'skip'];
+
+  // ----- states -----
+  if (loading && !entries.length) {
+    return (
+      <div className="wrap"><div className="state"><div className="state__box">
+        <div className="spinner" />
+        <div className="state__title">กำลังโหลดข้อมูล…</div>
+        <div className="state__desc">ดึงข้อมูลจาก Google Sheet</div>
+      </div></div></div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="wrap"><div className="state"><div className="state__box">
+        <div style={{ color: 'var(--danger)' }}><Icon.Warn /></div>
+        <div className="state__title">โหลดข้อมูลไม่สำเร็จ</div>
+        <div className="state__desc">{error}<br /><br />ตรวจสอบว่า Web app URL เชื่อมต่ออยู่</div>
+        <div style={{ marginTop: 20 }}>
+          <button className="ghost-btn" onClick={load}><Icon.Refresh /> ลองใหม่</button>
+        </div>
+      </div></div></div>
+    );
+  }
+
+  return (
+    <div className="wrap">
+      {/* Header */}
+      <div className="head">
+        <div className="head__left">
+          <div className="head__logo"><Icon.Dash /></div>
+          <div>
+            <h1 className="head__title">แดชบอร์ดสรุปงาน</h1>
+            <p className="head__sub">ภาพรวมความคืบหน้าการทำงานทั้งหมด</p>
+          </div>
+        </div>
+        <div className="head__right">
+          <div className="stamp">
+            <b>{fullThaiToday()}</b>
+            {refreshedAt && <span>อัปเดตล่าสุด {refreshedAt.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</span>}
+          </div>
+          <button className="ghost-btn" onClick={load} disabled={loading}>
+            <Icon.Refresh /> {loading ? 'กำลังโหลด…' : 'รีเฟรช'}
+          </button>
+        </div>
+      </div>
+
+      {entries.length === 0 ? (
+        <div className="state"><div className="state__box">
+          <div style={{ color: 'var(--text-soft)' }}><Icon.Inbox /></div>
+          <div className="state__title">ยังไม่มีข้อมูลงาน</div>
+          <div className="state__desc">เพิ่มงานในหน้าจัดการก่อน แล้วกลับมาดูสรุปที่นี่</div>
+        </div></div>
+      ) : (
+      <React.Fragment>
+        {/* Filter bar */}
+        <div className="filterbar">
+          <div className="search">
+            <Icon.Search />
+            <input
+              type="text"
+              placeholder="ค้นหาชื่องาน…"
+              value={search}
+              onChange={e => setSearch(e.target.value)} />
+            {search && (
+              <button className="search__clear" onClick={() => setSearch('')} aria-label="ล้างคำค้นหา"><Icon.X /></button>
+            )}
+          </div>
+          <div className="selectwrap">
+            <select value={monthFilter} data-active={monthFilter !== 'all' ? '1' : '0'} onChange={e => setMonthFilter(e.target.value)}>
+              <option value="all">ทุกเดือน</option>
+              {monthOptions.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
+            </select>
+            <Icon.Chevron />
+          </div>
+          <div className="selectwrap">
+            <select value={typeFilter} data-active={typeFilter !== 'all' ? '1' : '0'} onChange={e => setTypeFilter(e.target.value)}>
+              <option value="all">ทุกประเภท</option>
+              {typeOptions.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <Icon.Chevron />
+          </div>
+          {filterActive
+            ? <button className="filter-reset" onClick={resetFilters}><Icon.X /> ล้างตัวกรอง</button>
+            : <span className="filter-count">{entries.length} รายการ</span>}
+          {filterActive && <span className="filter-count">พบ {filtered.length} จาก {entries.length} รายการ</span>}
+        </div>
+
+        {filtered.length === 0 ? (
+        <div className="state" style={{ minHeight: '40vh' }}><div className="state__box">
+          <div style={{ color: 'var(--text-soft)' }}><Icon.Search /></div>
+          <div className="state__title">ไม่พบงานที่ตรงกับตัวกรอง</div>
+          <div className="state__desc">ลองปรับคำค้นหา เดือน หรือประเภทงาน</div>
+          <div style={{ marginTop: 18 }}>
+            <button className="ghost-btn" onClick={resetFilters}><Icon.X /> ล้างตัวกรอง</button>
+          </div>
+        </div></div>
+        ) : (
+        <React.Fragment>
+        {/* KPI strip */}
+        <div className="kpis">
+          <div className="kpi kpi--total">
+            <div className="kpi__label">งานทั้งหมด</div>
+            <div className="kpi__value">{stats.total}</div>
+            <div className="kpi__hint">รายการที่บันทึกไว้</div>
+          </div>
+          <div className="kpi kpi--done">
+            <div className="kpi__label">เสร็จแล้ว</div>
+            <div className="kpi__value">{stats.done}<small>· {stats.pct}%</small></div>
+            <div className="kpi__hint">ของงานทั้งหมด</div>
+          </div>
+          <div className="kpi kpi--doing">
+            <div className="kpi__label">กำลังดำเนินการ</div>
+            <div className="kpi__value">{stats.doing}</div>
+            <div className="kpi__hint">อยู่ระหว่างดำเนินการ</div>
+          </div>
+          <div className="kpi kpi--todo">
+            <div className="kpi__label">ยังไม่เริ่ม</div>
+            <div className="kpi__value">{stats.todo}</div>
+            <div className="kpi__hint">รอดำเนินการ</div>
+          </div>
+          <div className="kpi kpi--skip">
+            <div className="kpi__label">ไม่ต้องทำ</div>
+            <div className="kpi__value">{stats.skip}</div>
+            <div className="kpi__hint">ยกเลิก / ไม่จำเป็น</div>
+          </div>
+        </div>
+
+        {/* Status donut + assignment */}
+        <div className="grid-2">
+          <div className="panel">
+            <div className="panel__head"><h2 className="panel__title">สัดส่วนสถานะงาน</h2></div>
+            <div className="donut-wrap">
+              <Donut
+                size={168} thickness={22}
+                segments={STATUSES.map(s => ({ value: stats[s.key] || 0, color: STATUS_COLOR[s.key] }))}
+                centerTop={`${stats.pct}%`} centerBottom="เสร็จแล้ว" centerColor="var(--done)" />
+              <div className="legend">
+                {STATUSES.map(s => {
+                  const v = stats[s.key] || 0;
+                  const pct = stats.total ? Math.round((v / stats.total) * 100) : 0;
+                  return (
+                    <div className="legend__row" key={s.key}>
+                      <span className="legend__dot" style={{ background: STATUS_COLOR[s.key] }} />
+                      <span className="legend__name">{s.label}</span>
+                      <span className="legend__count">{v}</span>
+                      <span className="legend__pct">{pct}%</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="panel">
+            <div className="panel__head">
+              <h2 className="panel__title">การมอบหมายงาน</h2>
+              <span className="panel__note">ได้รับมอบหมาย vs ดำเนินการเอง</span>
+            </div>
+            <div className="split">
+              <div className="split__bar">
+                <span style={{ width: `${assignSplit.total ? (assignSplit.assigned / assignSplit.total) * 100 : 0}%`, background: 'var(--assigned)' }}>
+                  {assignSplit.assigned > 0 && assignSplit.assigned}
+                </span>
+                <span style={{ width: `${assignSplit.total ? (assignSplit.self / assignSplit.total) * 100 : 0}%`, background: 'var(--accent)' }}>
+                  {assignSplit.self > 0 && assignSplit.self}
+                </span>
+              </div>
+              <div className="split__legend">
+                <div className="splitleg">
+                  <span className="splitleg__sw" style={{ background: 'var(--assigned)' }} />
+                  <div>
+                    <div className="splitleg__v">{assignSplit.assigned}</div>
+                    <div className="splitleg__l">ได้รับมอบหมาย</div>
+                  </div>
+                </div>
+                <div className="splitleg">
+                  <span className="splitleg__sw" style={{ background: 'var(--accent)' }} />
+                  <div>
+                    <div className="splitleg__v">{assignSplit.self}</div>
+                    <div className="splitleg__l">ดำเนินการเอง</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, marginTop: 2 }}>
+                <div className="panel__title" style={{ fontSize: 14, marginBottom: 12 }}>งานที่กำลังจะถึง</div>
+                {upcoming.length === 0 ? (
+                  <div className="empty-mini">ไม่มีงานที่กำลังจะถึง</div>
+                ) : (
+                  <div className="list">
+                    {upcoming.map(e => {
+                      const soon = String(e.date) === todayIso();
+                      return (
+                        <div className="litem" key={e.id}>
+                          <span className={`pill pill--${e.status}`}><span className="pill__dot" style={{ background: STATUS_COLOR[e.status] }} />{statusLabel(e.status)}</span>
+                          <div className="litem__main">
+                            <div className="litem__name">{e.name}</div>
+                          </div>
+                          <div className={`litem__date ${soon ? 'litem__date--soon' : ''}`}>{soon ? 'วันนี้' : formatThaiDate(e.date)}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Work type breakdown */}
+        <div className="panel" style={{ marginBottom: 18 }}>
+          <div className="panel__head">
+            <h2 className="panel__title">งานแยกตามประเภท</h2>
+            <span className="panel__note">แถบสีแสดงสถานะภายในแต่ละประเภท</span>
+          </div>
+          <div className="barlist">
+            {byType.map(row => (
+              <div className="barrow" key={row.name}>
+                <div className="barrow__top">
+                  <span className="barrow__name">{row.name}</span>
+                  <span className="barrow__count"><b>{row.done}</b> เสร็จ / {row.total} งาน</span>
+                </div>
+                <div className="stackbar">
+                  {segOrder.map(st => row[st] > 0 && (
+                    <span key={st} title={`${statusLabel(st)} ${row[st]}`}
+                      style={{ width: `${(row[st] / row.total) * 100}%`, background: STATUS_COLOR[st] }} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Monthly activity + recent */}
+        <div className="grid-2" style={{ gridTemplateColumns: '1.15fr 0.85fr' }}>
+          <div className="panel">
+            <div className="panel__head">
+              <h2 className="panel__title">กิจกรรมรายเดือน</h2>
+              <span className="panel__note">6 เดือนล่าสุด</span>
+            </div>
+            {months.length === 0 ? (
+              <div className="empty-mini">ยังไม่มีข้อมูลวันที่</div>
+            ) : (
+              <div className="months">
+                {months.map(mo => (
+                  <div className="month" key={mo.key}>
+                    <div className="month__total">{mo.total || ''}</div>
+                    <div className="month__col-inner">
+                      <div className="month__bars" style={{ height: `${(mo.total / maxMonth) * 100}%`, minHeight: mo.total ? 6 : 0 }}>
+                        {segOrder.map(st => mo[st] > 0 && (
+                          <div key={st} className="month__seg" title={`${statusLabel(st)} ${mo[st]}`}
+                            style={{ height: `${(mo[st] / mo.total) * 100}%`, background: STATUS_COLOR[st] }} />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="month__label">{mo.label}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="split__legend" style={{ marginTop: 18, flexWrap: 'wrap', gap: 16 }}>
+              {STATUSES.map(s => (
+                <div className="splitleg" key={s.key} style={{ gap: 7 }}>
+                  <span className="splitleg__sw" style={{ width: 11, height: 11, borderRadius: '50%', background: STATUS_COLOR[s.key] }} />
+                  <div className="splitleg__l" style={{ fontSize: 12.5 }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="panel">
+            <div className="panel__head"><h2 className="panel__title">งานล่าสุด</h2></div>
+            <div className="list">
+              {recent.map(e => (
+                <div className="litem" key={e.id}>
+                  <span className={`pill pill--${e.status}`}><span className="pill__dot" style={{ background: STATUS_COLOR[e.status] }} />{statusLabel(e.status)}</span>
+                  <div className="litem__main">
+                    <div className="litem__name">{e.name}</div>
+                    <div className="litem__meta">
+                      {e.workType && <span className="type-chip">{e.workType}</span>}
+                      {isAssigned(e.assigned) && <span className="assign-chip">มอบหมาย</span>}
+                    </div>
+                  </div>
+                  <div className="litem__date">{formatThaiDate(e.date)}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        </React.Fragment>
+        )}
+      </React.Fragment>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+
+</script>
+
+<template id="__bundler_thumbnail">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <rect width="100" height="100" fill="#2c5f4f"/>
+    <rect x="30" y="52" width="11" height="20" rx="1.5" fill="#fff"/>
+    <rect x="45" y="40" width="11" height="32" rx="1.5" fill="#cfe4d9"/>
+    <rect x="60" y="46" width="11" height="26" rx="1.5" fill="#fff"/>
+    <path d="M28 30h44" stroke="#cfe4d9" stroke-width="3" stroke-linecap="round"/>
+  </svg>
+</template>
+
+</body>
+</html>
